@@ -1,0 +1,70 @@
+{
+  "schedule_id": "SCH001",
+  "train": {
+    "id": "FR1000",
+    "name": "Frecciarossa 1000",
+    "type": "high_speed",
+    "max_speed": 300,
+    "acceleration": 0.5,
+    "deceleration": 0.7,
+    "length": 200,
+    "capacity": 500,
+    "current_speed": 0,
+    "current_position": null,
+    "status": "idle"
+  },
+  "stops": [
+    {
+      "node_id": "ROMA",
+      "arrival_time": null,
+      "departure_time": "2025-11-12T06:00:00",
+      "platform": null,
+      "stop_duration": 0,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "FLOR",
+      "arrival_time": "2025-11-12T06:55:10.857143",
+      "departure_time": "2025-11-12T07:00:10.857143",
+      "platform": null,
+      "stop_duration": 5,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "BOLO",
+      "arrival_time": "2025-11-12T07:18:45.714286",
+      "departure_time": "2025-11-12T07:23:45.714286",
+      "platform": null,
+      "stop_duration": 5,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "MILA",
+      "arrival_time": "2025-11-12T08:09:44.571429",
+      "departure_time": null,
+      "platform": null,
+      "stop_duration": 5,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    }
+  ],
+  "route": [
+    "ROMA",
+    "FLOR",
+    "BOLO",
+    "MILA"
+  ],
+  "origin": "ROMA",
+  "destination": "MILA",
+  "service_date": "2025-11-12",
+  "priority": 5,
+  "status": "scheduled",
+  "total_delay": 0
+}

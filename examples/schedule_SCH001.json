@@ -1,0 +1,59 @@
+{
+  "schedule_id": "SCH001",
+  "train": {
+    "id": "TR001",
+    "name": "Express 100",
+    "type": "high_speed",
+    "max_speed": 300,
+    "acceleration": 0.5,
+    "deceleration": 0.7,
+    "length": 200,
+    "capacity": 500,
+    "current_speed": 0,
+    "current_position": null,
+    "status": "idle"
+  },
+  "stops": [
+    {
+      "node_id": "STN1",
+      "arrival_time": null,
+      "departure_time": "2025-11-12T09:00:00",
+      "platform": null,
+      "stop_duration": 0,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "STN2",
+      "arrival_time": "2025-11-12T09:16:35.238095",
+      "departure_time": "2025-11-12T09:19:35.238095",
+      "platform": null,
+      "stop_duration": 3,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "STN3",
+      "arrival_time": "2025-11-12T09:50:32.380952",
+      "departure_time": null,
+      "platform": null,
+      "stop_duration": 3,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    }
+  ],
+  "route": [
+    "STN1",
+    "STN2",
+    "STN3"
+  ],
+  "origin": "STN1",
+  "destination": "STN3",
+  "service_date": "2025-11-12",
+  "priority": 5,
+  "status": "scheduled",
+  "total_delay": 0
+}

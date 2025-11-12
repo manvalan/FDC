@@ -1,0 +1,1437 @@
+{
+  "name": "Ferrovie della Contea",
+  "nodes": [
+    {
+      "id": "Greenfield",
+      "name": "Greenfield",
+      "type": "station",
+      "latitude": 56.0,
+      "longitude": 38.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Nobottle",
+      "name": "Nobottle",
+      "type": "station",
+      "latitude": 50.0,
+      "longitude": 10.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Longcleve",
+      "name": "Longcleve",
+      "type": "station",
+      "latitude": 52.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Lowcleve",
+      "name": "Lowcleve",
+      "type": "station",
+      "latitude": 47.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Needhole",
+      "name": "Needhole",
+      "type": "station",
+      "latitude": 42.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Rushock Bag",
+      "name": "Rushock Bag",
+      "type": "station",
+      "latitude": 37.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Bagend",
+      "name": "Bagend",
+      "type": "station",
+      "latitude": 32.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Over The Hill",
+      "name": "Over The Hill",
+      "type": "station",
+      "latitude": 27.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "The Hill",
+      "name": "The Hill",
+      "type": "station",
+      "latitude": 23.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Hobbiton",
+      "name": "Hobbiton",
+      "type": "station",
+      "latitude": 19.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "ByWater Pool",
+      "name": "ByWater Pool",
+      "type": "interchange",
+      "latitude": 14.0,
+      "longitude": 40.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Bywater",
+      "name": "Bywater",
+      "type": "interchange",
+      "latitude": 11.0,
+      "longitude": 40.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Tuckland",
+      "name": "Tuckland",
+      "type": "station",
+      "latitude": 8.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Stockroad",
+      "name": "Stockroad",
+      "type": "station",
+      "latitude": 5.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Greenhill Country",
+      "name": "Greenhill Country",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Girdlay Island",
+      "name": "Girdlay Island",
+      "type": "station",
+      "latitude": 53.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Quarry",
+      "name": "Quarry",
+      "type": "station",
+      "latitude": 48.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Scary",
+      "name": "Scary",
+      "type": "station",
+      "latitude": 43.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Dwaling",
+      "name": "Dwaling",
+      "type": "station",
+      "latitude": 38.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Brockenborings",
+      "name": "Brockenborings",
+      "type": "station",
+      "latitude": 33.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Oatbarton",
+      "name": "Oatbarton",
+      "type": "station",
+      "latitude": 28.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "The North Farthing",
+      "name": "The North Farthing",
+      "type": "station",
+      "latitude": 24.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Frogmorton",
+      "name": "Frogmorton",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Withfurrows",
+      "name": "Withfurrows",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 75.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Bridge",
+      "name": "Bridge",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 90.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Newbury",
+      "name": "Newbury",
+      "type": "station",
+      "latitude": 10.0,
+      "longitude": 90.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Brandy Hall",
+      "name": "Brandy Hall",
+      "type": "interchange",
+      "latitude": 5.0,
+      "longitude": 90.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Buckelbury Ferry",
+      "name": "Buckelbury Ferry",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 90.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Rush",
+      "name": "Rush",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 60.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Willow Bottom",
+      "name": "Willow Bottom",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 70.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Deep Hallow",
+      "name": "Deep Hallow",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 80.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "The Stone",
+      "name": "The Stone",
+      "type": "station",
+      "latitude": 8.0,
+      "longitude": 55.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "The Yale",
+      "name": "The Yale",
+      "type": "station",
+      "latitude": 5.0,
+      "longitude": 55.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Stock",
+      "name": "Stock",
+      "type": "station",
+      "latitude": 5.0,
+      "longitude": 70.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Woody End",
+      "name": "Woody End",
+      "type": "station",
+      "latitude": -5.0,
+      "longitude": 50.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Whistle Brook",
+      "name": "Whistle Brook",
+      "type": "station",
+      "latitude": -5.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Pincup",
+      "name": "Pincup",
+      "type": "station",
+      "latitude": -5.0,
+      "longitude": 30.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Tukborrow",
+      "name": "Tukborrow",
+      "type": "station",
+      "latitude": 8.0,
+      "longitude": 30.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Michel Delving",
+      "name": "Michel Delving",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 20.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Westmarch",
+      "name": "Westmarch",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 30.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "White Downs",
+      "name": "White Downs",
+      "type": "station",
+      "latitude": 20.0,
+      "longitude": 25.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Westbank",
+      "name": "Westbank",
+      "type": "station",
+      "latitude": 26.0,
+      "longitude": 30.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Little Delvings",
+      "name": "Little Delvings",
+      "type": "station",
+      "latitude": 32.0,
+      "longitude": 20.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Gamwich",
+      "name": "Gamwich",
+      "type": "station",
+      "latitude": 37.0,
+      "longitude": 20.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Tightfield",
+      "name": "Tightfield",
+      "type": "station",
+      "latitude": 42.0,
+      "longitude": 20.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Westmarch Greenholm",
+      "name": "Westmarch Greenholm",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 10.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Foxdown",
+      "name": "Foxdown",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 0.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Flostirion",
+      "name": "Flostirion",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": -10.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "White Towers",
+      "name": "White Towers",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": -5.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Undertower",
+      "name": "Undertower",
+      "type": "interchange",
+      "latitude": 11.0,
+      "longitude": 0.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Waymeet",
+      "name": "Waymeet",
+      "type": "station",
+      "latitude": 14.0,
+      "longitude": 35.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Withwell",
+      "name": "Withwell",
+      "type": "station",
+      "latitude": 30.0,
+      "longitude": 35.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Tuck",
+      "name": "Tuck",
+      "type": "station",
+      "latitude": 1.0,
+      "longitude": 40.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Greenhill",
+      "name": "Greenhill",
+      "type": "station",
+      "latitude": 0.0,
+      "longitude": 30.0,
+      "capacity": 3,
+      "platforms": 2,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Undertower_AV",
+      "name": "Undertower AV",
+      "type": "station",
+      "latitude": 12.0,
+      "longitude": 1.0,
+      "capacity": 12,
+      "platforms": 6,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Michel Delving_AV",
+      "name": "Michel Delving AV",
+      "type": "station",
+      "latitude": 15.0,
+      "longitude": 21.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Tuck_AV",
+      "name": "Tuck AV",
+      "type": "station",
+      "latitude": 2.0,
+      "longitude": 41.0,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Bywater_AV",
+      "name": "Bywater AV",
+      "type": "station",
+      "latitude": 12.0,
+      "longitude": 41.0,
+      "capacity": 12,
+      "platforms": 6,
+      "current_occupancy": 0
+    },
+    {
+      "id": "Brandy Hall_AV",
+      "name": "Brandy Hall AV",
+      "type": "station",
+      "latitude": 6.0,
+      "longitude": 91.0,
+      "capacity": 12,
+      "platforms": 6,
+      "current_occupancy": 0
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "Greenfield",
+      "to_node": "Longcleve",
+      "distance": 20,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Longcleve",
+      "to_node": "Lowcleve",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Lowcleve",
+      "to_node": "Needhole",
+      "distance": 20,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Needhole",
+      "to_node": "Rushock Bag",
+      "distance": 20,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Rushock Bag",
+      "to_node": "Bagend",
+      "distance": 20,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bagend",
+      "to_node": "Over The Hill",
+      "distance": 9,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Over The Hill",
+      "to_node": "The Hill",
+      "distance": 8,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The Hill",
+      "to_node": "Hobbiton",
+      "distance": 4,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Hobbiton",
+      "to_node": "ByWater Pool",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "ByWater Pool",
+      "to_node": "Bywater",
+      "distance": 3,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bywater",
+      "to_node": "ByWater Pool",
+      "distance": 3,
+      "track_type": "double",
+      "max_speed": 160,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "ByWater Pool",
+      "to_node": "The Stone",
+      "distance": 12,
+      "track_type": "double",
+      "max_speed": 160,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The Stone",
+      "to_node": "Stockroad",
+      "distance": 11,
+      "track_type": "single",
+      "max_speed": 160,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Stockroad",
+      "to_node": "The Yale",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 160,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The Yale",
+      "to_node": "Stock",
+      "distance": 14,
+      "track_type": "single",
+      "max_speed": 160,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Stock",
+      "to_node": "Buckelbury Ferry",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 160,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Buckelbury Ferry",
+      "to_node": "Brandy Hall",
+      "distance": 5,
+      "track_type": "double",
+      "max_speed": 160,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Nobottle",
+      "to_node": "Gamwich",
+      "distance": 24,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Gamwich",
+      "to_node": "Tightfield",
+      "distance": 22,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tightfield",
+      "to_node": "Little Delvings",
+      "distance": 22,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Little Delvings",
+      "to_node": "Westbank",
+      "distance": 23,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Westbank",
+      "to_node": "Waymeet",
+      "distance": 23,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Waymeet",
+      "to_node": "Withwell",
+      "distance": 14,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Withwell",
+      "to_node": "Tuck",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tuck",
+      "to_node": "Tukborrow",
+      "distance": 8,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tukborrow",
+      "to_node": "Tuckland",
+      "distance": 8,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tuckland",
+      "to_node": "The Stone",
+      "distance": 16,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The Stone",
+      "to_node": "ByWater Pool",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "ByWater Pool",
+      "to_node": "Bywater",
+      "distance": 3,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Flostirion",
+      "to_node": "White Towers",
+      "distance": 14,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "White Towers",
+      "to_node": "Undertower",
+      "distance": 12,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Undertower",
+      "to_node": "Westmarch",
+      "distance": 21,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Westmarch",
+      "to_node": "Westmarch Greenholm",
+      "distance": 24,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Westmarch Greenholm",
+      "to_node": "Foxdown",
+      "distance": 22,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Foxdown",
+      "to_node": "Michel Delving",
+      "distance": 21,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Michel Delving",
+      "to_node": "White Downs",
+      "distance": 22,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "White Downs",
+      "to_node": "Waymeet",
+      "distance": 13,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Waymeet",
+      "to_node": "Bywater",
+      "distance": 15,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bywater",
+      "to_node": "Frogmorton",
+      "distance": 20,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Frogmorton",
+      "to_node": "Withfurrows",
+      "distance": 16,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Withfurrows",
+      "to_node": "Bridge",
+      "distance": 17,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bridge",
+      "to_node": "Newbury",
+      "distance": 16,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Newbury",
+      "to_node": "Brandy Hall",
+      "distance": 15,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Undertower",
+      "to_node": "Michel Delving",
+      "distance": 88,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Michel Delving",
+      "to_node": "Tuck",
+      "distance": 42,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tuck",
+      "to_node": "Bywater",
+      "distance": 28,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bywater",
+      "to_node": "Brandy Hall",
+      "distance": 84,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Girdlay Island",
+      "to_node": "Quarry",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Quarry",
+      "to_node": "Scary",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Scary",
+      "to_node": "Dwaling",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Dwaling",
+      "to_node": "Brockenborings",
+      "distance": 6,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Brockenborings",
+      "to_node": "Oatbarton",
+      "distance": 6,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Oatbarton",
+      "to_node": "The North Farthing",
+      "distance": 8,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The North Farthing",
+      "to_node": "ByWater Pool",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "ByWater Pool",
+      "to_node": "Bywater",
+      "distance": 3,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "The Stone",
+      "to_node": "Stockroad",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Stockroad",
+      "to_node": "Greenhill Country",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Greenhill Country",
+      "to_node": "Greenhill",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Greenhill",
+      "to_node": "Pincup",
+      "distance": 21,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Pincup",
+      "to_node": "Whistle Brook",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Whistle Brook",
+      "to_node": "Woody End",
+      "distance": 18,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Woody End",
+      "to_node": "Willow Bottom",
+      "distance": 25,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Willow Bottom",
+      "to_node": "Deep Hallow",
+      "distance": 14,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Deep Hallow",
+      "to_node": "Rush",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Rush",
+      "to_node": "Buckelbury Ferry",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Buckelbury Ferry",
+      "to_node": "Brandy Hall",
+      "distance": 5,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Nobottle",
+      "to_node": "Longcleve",
+      "distance": 26,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Longcleve",
+      "to_node": "Lowcleve",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Lowcleve",
+      "to_node": "Needhole",
+      "distance": 20,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Needhole",
+      "to_node": "Rushock Bag",
+      "distance": 22,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Rushock Bag",
+      "to_node": "Dwaling",
+      "distance": 22,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Dwaling",
+      "to_node": "Scary",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Scary",
+      "to_node": "Quarry",
+      "distance": 12,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Quarry",
+      "to_node": "Girdlay Island",
+      "distance": 10,
+      "track_type": "single",
+      "max_speed": 100,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Undertower_AV",
+      "to_node": "Michel Delving_AV",
+      "distance": 88,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Michel Delving_AV",
+      "to_node": "Tuck_AV",
+      "distance": 42,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tuck_AV",
+      "to_node": "Bywater_AV",
+      "distance": 28,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bywater_AV",
+      "to_node": "Brandy Hall_AV",
+      "distance": 68,
+      "track_type": "double",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Undertower",
+      "to_node": "Undertower_AV",
+      "distance": 0.3,
+      "track_type": "single",
+      "max_speed": 30,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Michel Delving",
+      "to_node": "Michel Delving_AV",
+      "distance": 0.3,
+      "track_type": "single",
+      "max_speed": 30,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Tuck",
+      "to_node": "Tuck_AV",
+      "distance": 0.3,
+      "track_type": "single",
+      "max_speed": 30,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Bywater",
+      "to_node": "Bywater_AV",
+      "distance": 0.3,
+      "track_type": "single",
+      "max_speed": 30,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "Brandy Hall",
+      "to_node": "Brandy Hall_AV",
+      "distance": 0.3,
+      "track_type": "single",
+      "max_speed": 30,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    }
+  ],
+  "statistics": {
+    "num_nodes": 59,
+    "num_edges": 83,
+    "num_stations": 55,
+    "num_interchanges": 4,
+    "total_track_length": 1447.5,
+    "is_connected": true,
+    "average_degree": 4.813559322033898
+  },
+  "export_timestamp": "2025-11-12T14:36:47.480920"
+}

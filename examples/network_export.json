@@ -1,0 +1,67 @@
+{
+  "name": "Test Railway Network",
+  "nodes": [
+    {
+      "id": "STN1",
+      "name": "Central Station",
+      "type": "station",
+      "latitude": 45.0,
+      "longitude": 9.0,
+      "capacity": 10,
+      "platforms": 8,
+      "current_occupancy": 0
+    },
+    {
+      "id": "STN2",
+      "name": "North Junction",
+      "type": "interchange",
+      "latitude": 45.5,
+      "longitude": 9.2,
+      "capacity": 6,
+      "platforms": 4,
+      "current_occupancy": 0
+    },
+    {
+      "id": "STN3",
+      "name": "South Terminal",
+      "type": "station",
+      "latitude": 44.8,
+      "longitude": 8.9,
+      "capacity": 8,
+      "platforms": 6,
+      "current_occupancy": 0
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "STN1",
+      "to_node": "STN2",
+      "distance": 50.0,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "STN2",
+      "to_node": "STN3",
+      "distance": 60.0,
+      "track_type": "single",
+      "max_speed": 120,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    }
+  ],
+  "statistics": {
+    "num_nodes": 3,
+    "num_edges": 2,
+    "num_stations": 2,
+    "num_interchanges": 1,
+    "total_track_length": 110.0,
+    "is_connected": true,
+    "average_degree": 2.6666666666666665
+  },
+  "export_timestamp": "2025-11-12T12:06:46.569377"
+}

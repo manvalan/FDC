@@ -1,0 +1,87 @@
+{
+  "name": "Demo Railway Network",
+  "nodes": [
+    {
+      "id": "ROMA",
+      "name": "Roma Termini",
+      "type": "station",
+      "latitude": 41.9009,
+      "longitude": 12.5023,
+      "capacity": 12,
+      "platforms": 10,
+      "current_occupancy": 0
+    },
+    {
+      "id": "FLOR",
+      "name": "Firenze SMN",
+      "type": "interchange",
+      "latitude": 43.7762,
+      "longitude": 11.2475,
+      "capacity": 8,
+      "platforms": 6,
+      "current_occupancy": 0
+    },
+    {
+      "id": "BOLO",
+      "name": "Bologna Centrale",
+      "type": "interchange",
+      "latitude": 44.5061,
+      "longitude": 11.3427,
+      "capacity": 10,
+      "platforms": 8,
+      "current_occupancy": 0
+    },
+    {
+      "id": "MILA",
+      "name": "Milano Centrale",
+      "type": "station",
+      "latitude": 45.4864,
+      "longitude": 9.204,
+      "capacity": 10,
+      "platforms": 8,
+      "current_occupancy": 0
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "ROMA",
+      "to_node": "FLOR",
+      "distance": 264.0,
+      "track_type": "high_speed",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "FLOR",
+      "to_node": "BOLO",
+      "distance": 81.0,
+      "track_type": "high_speed",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "BOLO",
+      "to_node": "MILA",
+      "distance": 218.0,
+      "track_type": "high_speed",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    }
+  ],
+  "statistics": {
+    "num_nodes": 4,
+    "num_edges": 3,
+    "num_stations": 2,
+    "num_interchanges": 2,
+    "total_track_length": 563.0,
+    "is_connected": true,
+    "average_degree": 3.0
+  },
+  "export_timestamp": "2025-11-12T12:08:39.992358"
+}

@@ -1,0 +1,167 @@
+{
+  "name": "Italian Regional Network - Sample",
+  "nodes": [
+    {
+      "id": "MI",
+      "name": "Milano Centrale",
+      "type": "station",
+      "latitude": 45.4864,
+      "longitude": 9.204,
+      "capacity": 10,
+      "platforms": 8,
+      "current_occupancy": 0
+    },
+    {
+      "id": "BO",
+      "name": "Bologna Centrale",
+      "type": "station",
+      "latitude": 44.5065,
+      "longitude": 11.3427,
+      "capacity": 8,
+      "platforms": 6,
+      "current_occupancy": 0
+    },
+    {
+      "id": "FI",
+      "name": "Firenze SMN",
+      "type": "station",
+      "latitude": 43.7769,
+      "longitude": 11.2477,
+      "capacity": 6,
+      "platforms": 5,
+      "current_occupancy": 0
+    },
+    {
+      "id": "RO",
+      "name": "Roma Termini",
+      "type": "station",
+      "latitude": 41.9009,
+      "longitude": 12.5023,
+      "capacity": 12,
+      "platforms": 10,
+      "current_occupancy": 0
+    },
+    {
+      "id": "NA",
+      "name": "Napoli Centrale",
+      "type": "station",
+      "latitude": 40.8532,
+      "longitude": 14.2739,
+      "capacity": 8,
+      "platforms": 7,
+      "current_occupancy": 0
+    },
+    {
+      "id": "VE",
+      "name": "Venezia Mestre",
+      "type": "station",
+      "latitude": 45.48,
+      "longitude": 12.2325,
+      "capacity": 6,
+      "platforms": 5,
+      "current_occupancy": 0
+    },
+    {
+      "id": "TO",
+      "name": "Torino Porta Nuova",
+      "type": "station",
+      "latitude": 45.0623,
+      "longitude": 7.6756,
+      "capacity": 7,
+      "platforms": 6,
+      "current_occupancy": 0
+    },
+    {
+      "id": "PR",
+      "name": "Parma",
+      "type": "interchange",
+      "latitude": 44.8015,
+      "longitude": 10.3279,
+      "capacity": 4,
+      "platforms": 4,
+      "current_occupancy": 0
+    }
+  ],
+  "edges": [
+    {
+      "from_node": "MI",
+      "to_node": "BO",
+      "distance": 215.0,
+      "track_type": "high_speed",
+      "max_speed": 250,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "BO",
+      "to_node": "FI",
+      "distance": 95.0,
+      "track_type": "high_speed",
+      "max_speed": 250,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "FI",
+      "to_node": "RO",
+      "distance": 275.0,
+      "track_type": "high_speed",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "RO",
+      "to_node": "NA",
+      "distance": 225.0,
+      "track_type": "high_speed",
+      "max_speed": 300,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "MI",
+      "to_node": "VE",
+      "distance": 267.0,
+      "track_type": "double",
+      "max_speed": 200,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "TO",
+      "to_node": "MI",
+      "distance": 142.0,
+      "track_type": "high_speed",
+      "max_speed": 250,
+      "capacity": 2,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "MI",
+      "to_node": "PR",
+      "distance": 120.0,
+      "track_type": "double",
+      "max_speed": 180,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    },
+    {
+      "from_node": "PR",
+      "to_node": "BO",
+      "distance": 95.0,
+      "track_type": "double",
+      "max_speed": 180,
+      "capacity": 1,
+      "bidirectional": true,
+      "current_usage": 0
+    }
+  ]
+}

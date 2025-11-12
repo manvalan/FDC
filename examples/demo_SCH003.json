@@ -1,0 +1,59 @@
+{
+  "schedule_id": "SCH003",
+  "train": {
+    "id": "REG2301",
+    "name": "Regionale 2301",
+    "type": "regional",
+    "max_speed": 160,
+    "acceleration": 0.6,
+    "deceleration": 0.8,
+    "length": 100,
+    "capacity": 300,
+    "current_speed": 0,
+    "current_position": null,
+    "status": "idle"
+  },
+  "stops": [
+    {
+      "node_id": "ROMA",
+      "arrival_time": null,
+      "departure_time": "2025-11-12T08:00:00",
+      "platform": null,
+      "stop_duration": 0,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "FLOR",
+      "arrival_time": "2025-11-12T09:40:04.814815",
+      "departure_time": "2025-11-12T09:50:04.814815",
+      "platform": null,
+      "stop_duration": 10,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "BOLO",
+      "arrival_time": "2025-11-12T10:21:32.129630",
+      "departure_time": null,
+      "platform": null,
+      "stop_duration": 10,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    }
+  ],
+  "route": [
+    "ROMA",
+    "FLOR",
+    "BOLO"
+  ],
+  "origin": "ROMA",
+  "destination": "BOLO",
+  "service_date": "2025-11-12",
+  "priority": 5,
+  "status": "scheduled",
+  "total_delay": 0
+}

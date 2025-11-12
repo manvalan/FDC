@@ -1,0 +1,957 @@
+{
+  "nome_rete": "Ferrovie della Contea",
+  "nodi": [
+    {
+      "id": "Greenfield",
+      "coordinate": [
+        380,
+        560
+      ],
+      "tipo": "Capolinea"
+    },
+    {
+      "id": "Nobottle",
+      "coordinate": [
+        100,
+        500
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Longcleve",
+      "coordinate": [
+        400,
+        520
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Lowcleve",
+      "coordinate": [
+        400,
+        470
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Needhole",
+      "coordinate": [
+        400,
+        420
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Rushock Bag",
+      "coordinate": [
+        400,
+        370
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Bagend",
+      "coordinate": [
+        400,
+        320
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Over The Hill",
+      "coordinate": [
+        400,
+        270
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "The Hill",
+      "coordinate": [
+        400,
+        230
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Hobbiton",
+      "coordinate": [
+        400,
+        190
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "ByWater Pool",
+      "coordinate": [
+        400,
+        140
+      ],
+      "tipo": "Interscambio"
+    },
+    {
+      "id": "Bywater",
+      "coordinate": [
+        400,
+        110
+      ],
+      "tipo": "Interscambio"
+    },
+    {
+      "id": "Tuckland",
+      "coordinate": [
+        400,
+        80
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Stockroad",
+      "coordinate": [
+        400,
+        50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Greenhill Country",
+      "coordinate": [
+        400,
+        0
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Girdlay Island",
+      "coordinate": [
+        600,
+        530
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Quarry",
+      "coordinate": [
+        600,
+        480
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Scary",
+      "coordinate": [
+        600,
+        430
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Dwaling",
+      "coordinate": [
+        600,
+        380
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Brockenborings",
+      "coordinate": [
+        600,
+        330
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Oatbarton",
+      "coordinate": [
+        600,
+        280
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "The North Farthing",
+      "coordinate": [
+        600,
+        240
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Frogmorton",
+      "coordinate": [
+        600,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Withfurrows",
+      "coordinate": [
+        750,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Bridge",
+      "coordinate": [
+        900,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Newbury",
+      "coordinate": [
+        900,
+        100
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Brandy Hall",
+      "coordinate": [
+        900,
+        50
+      ],
+      "tipo": "Capolinea/Interscambio"
+    },
+    {
+      "id": "Buckelbury Ferry",
+      "coordinate": [
+        900,
+        0
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Rush",
+      "coordinate": [
+        600,
+        0
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Willow Bottom",
+      "coordinate": [
+        700,
+        0
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Deep Hallow",
+      "coordinate": [
+        800,
+        0
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "The Stone",
+      "coordinate": [
+        550,
+        80
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "The Yale",
+      "coordinate": [
+        550,
+        50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Stock",
+      "coordinate": [
+        700,
+        50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Woody End",
+      "coordinate": [
+        500,
+        -50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Whistle Brook",
+      "coordinate": [
+        400,
+        -50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Pincup",
+      "coordinate": [
+        300,
+        -50
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Tukborrow",
+      "coordinate": [
+        300,
+        80
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Michel Delving",
+      "coordinate": [
+        200,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Westmarch",
+      "coordinate": [
+        300,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "White Downs",
+      "coordinate": [
+        250,
+        200
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Westbank",
+      "coordinate": [
+        300,
+        260
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Little Delvings",
+      "coordinate": [
+        200,
+        320
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Gamwich",
+      "coordinate": [
+        200,
+        370
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Tightfield",
+      "coordinate": [
+        200,
+        420
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Westmarch Greenholm",
+      "coordinate": [
+        100,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Foxdown",
+      "coordinate": [
+        0,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Flostirion",
+      "coordinate": [
+        -100,
+        140
+      ],
+      "tipo": "Capolinea"
+    },
+    {
+      "id": "White Towers",
+      "coordinate": [
+        -50,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Undertower",
+      "coordinate": [
+        0,
+        110
+      ],
+      "tipo": "Interscambio"
+    },
+    {
+      "id": "Waymeet",
+      "coordinate": [
+        350,
+        140
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Withwell",
+      "coordinate": [
+        350,
+        300
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Tuck",
+      "coordinate": [
+        400,
+        10
+      ],
+      "tipo": "Normale"
+    },
+    {
+      "id": "Greenhill",
+      "coordinate": [
+        300,
+        0
+      ],
+      "tipo": "Normale"
+    }
+  ],
+  "connessioni": [
+    {
+      "da": "Greenfield",
+      "a": "Longcleve",
+      "lunghezza": 20,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Longcleve",
+      "a": "Lowcleve",
+      "lunghezza": 10,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Lowcleve",
+      "a": "Needhole",
+      "lunghezza": 20,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Needhole",
+      "a": "Rushock Bag",
+      "lunghezza": 20,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Rushock Bag",
+      "a": "Bagend",
+      "lunghezza": 20,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Bagend",
+      "a": "Over The Hill",
+      "lunghezza": 9,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Over The Hill",
+      "a": "The Hill",
+      "lunghezza": 8,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "The Hill",
+      "a": "Hobbiton",
+      "lunghezza": 4,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Hobbiton",
+      "a": "ByWater Pool",
+      "lunghezza": 10,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "ByWater Pool",
+      "a": "Bywater",
+      "lunghezza": 3,
+      "colore": "Rosso",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Bywater",
+      "a": "ByWater Pool",
+      "lunghezza": 3,
+      "colore": "Arancione",
+      "binario": "Doppio"
+    },
+    {
+      "da": "ByWater Pool",
+      "a": "The Stone",
+      "lunghezza": 12,
+      "colore": "Arancione",
+      "binario": "Doppio"
+    },
+    {
+      "da": "The Stone",
+      "a": "Stockroad",
+      "lunghezza": 11,
+      "colore": "Arancione",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Stockroad",
+      "a": "The Yale",
+      "lunghezza": 12,
+      "colore": "Arancione",
+      "binario": "Singolo"
+    },
+    {
+      "da": "The Yale",
+      "a": "Stock",
+      "lunghezza": 14,
+      "colore": "Arancione",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Stock",
+      "a": "Buckelbury Ferry",
+      "lunghezza": 12,
+      "colore": "Arancione",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Buckelbury Ferry",
+      "a": "Brandy Hall",
+      "lunghezza": 5,
+      "colore": "Arancione",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Nobottle",
+      "a": "Gamwich",
+      "lunghezza": 24,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Gamwich",
+      "a": "Tightfield",
+      "lunghezza": 22,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Tightfield",
+      "a": "Little Delvings",
+      "lunghezza": 22,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Little Delvings",
+      "a": "Westbank",
+      "lunghezza": 23,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Westbank",
+      "a": "Waymeet",
+      "lunghezza": 23,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Waymeet",
+      "a": "Withwell",
+      "lunghezza": 14,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Withwell",
+      "a": "Tuck",
+      "lunghezza": 10,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Tuck",
+      "a": "Tukborrow",
+      "lunghezza": 8,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Tukborrow",
+      "a": "Tuckland",
+      "lunghezza": 8,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Tuckland",
+      "a": "The Stone",
+      "lunghezza": 16,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "The Stone",
+      "a": "ByWater Pool",
+      "lunghezza": 12,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "ByWater Pool",
+      "a": "Bywater",
+      "lunghezza": 3,
+      "colore": "Verde",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Flostirion",
+      "a": "White Towers",
+      "lunghezza": 14,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "White Towers",
+      "a": "Undertower",
+      "lunghezza": 12,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Undertower",
+      "a": "Westmarch",
+      "lunghezza": 21,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Westmarch",
+      "a": "Westmarch Greenholm",
+      "lunghezza": 24,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Westmarch Greenholm",
+      "a": "Foxdown",
+      "lunghezza": 22,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Foxdown",
+      "a": "Michel Delving",
+      "lunghezza": 21,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Michel Delving",
+      "a": "White Downs",
+      "lunghezza": 22,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "White Downs",
+      "a": "Waymeet",
+      "lunghezza": 13,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Waymeet",
+      "a": "Bywater",
+      "lunghezza": 15,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Bywater",
+      "a": "Frogmorton",
+      "lunghezza": 20,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Frogmorton",
+      "a": "Withfurrows",
+      "lunghezza": 16,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Withfurrows",
+      "a": "Bridge",
+      "lunghezza": 17,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Bridge",
+      "a": "Newbury",
+      "lunghezza": 16,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Newbury",
+      "a": "Brandy Hall",
+      "lunghezza": 15,
+      "colore": "Blu",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Undertower",
+      "a": "Michel Delving",
+      "lunghezza": 88,
+      "colore": "Giallo",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Michel Delving",
+      "a": "Tuck",
+      "lunghezza": 42,
+      "colore": "Giallo",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Tuck",
+      "a": "Bywater",
+      "lunghezza": 28,
+      "colore": "Giallo",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Bywater",
+      "a": "Brandy Hall",
+      "lunghezza": 84,
+      "colore": "Giallo",
+      "binario": "Doppio"
+    },
+    {
+      "da": "Girdlay Island",
+      "a": "Quarry",
+      "lunghezza": 10,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Quarry",
+      "a": "Scary",
+      "lunghezza": 12,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Scary",
+      "a": "Dwaling",
+      "lunghezza": 12,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Dwaling",
+      "a": "Brockenborings",
+      "lunghezza": 6,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Brockenborings",
+      "a": "Oatbarton",
+      "lunghezza": 6,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Oatbarton",
+      "a": "The North Farthing",
+      "lunghezza": 8,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "The North Farthing",
+      "a": "ByWater Pool",
+      "lunghezza": 12,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "ByWater Pool",
+      "a": "Bywater",
+      "lunghezza": 3,
+      "colore": "Viola",
+      "binario": "Singolo"
+    },
+    {
+      "da": "The Stone",
+      "a": "Stockroad",
+      "lunghezza": 10,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Stockroad",
+      "a": "Greenhill Country",
+      "lunghezza": 10,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Greenhill Country",
+      "a": "Greenhill",
+      "lunghezza": 10,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Greenhill",
+      "a": "Pincup",
+      "lunghezza": 21,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Pincup",
+      "a": "Whistle Brook",
+      "lunghezza": 12,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Whistle Brook",
+      "a": "Woody End",
+      "lunghezza": 18,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Woody End",
+      "a": "Willow Bottom",
+      "lunghezza": 25,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Willow Bottom",
+      "a": "Deep Hallow",
+      "lunghezza": 14,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Deep Hallow",
+      "a": "Rush",
+      "lunghezza": 12,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Rush",
+      "a": "Buckelbury Ferry",
+      "lunghezza": 12,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Buckelbury Ferry",
+      "a": "Brandy Hall",
+      "lunghezza": 5,
+      "colore": "Marrone",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Nobottle",
+      "a": "Longcleve",
+      "lunghezza": 26,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Longcleve",
+      "a": "Lowcleve",
+      "lunghezza": 10,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Lowcleve",
+      "a": "Needhole",
+      "lunghezza": 20,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Needhole",
+      "a": "Rushock Bag",
+      "lunghezza": 22,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Rushock Bag",
+      "a": "Dwaling",
+      "lunghezza": 22,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Dwaling",
+      "a": "Scary",
+      "lunghezza": 12,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Scary",
+      "a": "Quarry",
+      "lunghezza": 12,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    },
+    {
+      "da": "Quarry",
+      "a": "Girdlay Island",
+      "lunghezza": 10,
+      "colore": "Fucsia",
+      "binario": "Singolo"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "schedule_id": "SCH002",
+  "train": {
+    "id": "IC505",
+    "name": "Intercity 505",
+    "type": "intercity",
+    "max_speed": 200,
+    "acceleration": 0.4,
+    "deceleration": 0.6,
+    "length": 150,
+    "capacity": 400,
+    "current_speed": 0,
+    "current_position": null,
+    "status": "idle"
+  },
+  "stops": [
+    {
+      "node_id": "MILA",
+      "arrival_time": null,
+      "departure_time": "2025-11-12T07:00:00",
+      "platform": null,
+      "stop_duration": 0,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "BOLO",
+      "arrival_time": "2025-11-12T08:07:19.740741",
+      "departure_time": "2025-11-12T08:15:19.740741",
+      "platform": null,
+      "stop_duration": 8,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "FLOR",
+      "arrival_time": "2025-11-12T08:41:33.481482",
+      "departure_time": "2025-11-12T08:49:33.481482",
+      "platform": null,
+      "stop_duration": 8,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "ROMA",
+      "arrival_time": "2025-11-12T10:10:41.222223",
+      "departure_time": null,
+      "platform": null,
+      "stop_duration": 8,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    }
+  ],
+  "route": [
+    "MILA",
+    "BOLO",
+    "FLOR",
+    "ROMA"
+  ],
+  "origin": "MILA",
+  "destination": "ROMA",
+  "service_date": "2025-11-12",
+  "priority": 5,
+  "status": "scheduled",
+  "total_delay": 0
+}

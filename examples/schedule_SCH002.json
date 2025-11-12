@@ -1,0 +1,59 @@
+{
+  "schedule_id": "SCH002",
+  "train": {
+    "id": "TR002",
+    "name": "Local 200",
+    "type": "regional",
+    "max_speed": 160,
+    "acceleration": 0.6,
+    "deceleration": 0.8,
+    "length": 100,
+    "capacity": 300,
+    "current_speed": 0,
+    "current_position": null,
+    "status": "idle"
+  },
+  "stops": [
+    {
+      "node_id": "STN3",
+      "arrival_time": null,
+      "departure_time": "2025-11-12T09:10:00",
+      "platform": null,
+      "stop_duration": 0,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "STN2",
+      "arrival_time": "2025-11-12T09:40:48.611111",
+      "departure_time": "2025-11-12T09:45:48.611111",
+      "platform": null,
+      "stop_duration": 5,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    },
+    {
+      "node_id": "STN1",
+      "arrival_time": "2025-11-12T10:05:38.425926",
+      "departure_time": null,
+      "platform": null,
+      "stop_duration": 5,
+      "actual_arrival": null,
+      "actual_departure": null,
+      "delay_minutes": 0
+    }
+  ],
+  "route": [
+    "STN3",
+    "STN2",
+    "STN1"
+  ],
+  "origin": "STN3",
+  "destination": "STN1",
+  "service_date": "2025-11-12",
+  "priority": 5,
+  "status": "scheduled",
+  "total_delay": 0
+}
