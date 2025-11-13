@@ -20,6 +20,10 @@ set(GUI_SOURCES
     main.cpp
     main_window.cpp
     main_window.hpp
+    station_dialog.cpp
+    station_dialog.hpp
+    connection_dialog.cpp
+    connection_dialog.hpp
 )
 
 # Create executable

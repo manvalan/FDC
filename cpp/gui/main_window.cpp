@@ -534,33 +534,255 @@ void MainWindow::showDocumentation() {
 }
 
 void MainWindow::addStation() {
-    QMessageBox::information(this, tr("Aggiungi Stazione"),
-        tr("Dialog aggiunta stazione - da implementare"));
+    StationDialog dialog(this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto station = dialog.getStation();
+        
+        // Check if station ID already exists
+        if (network->has_node(station->get_id())) {
+            QMessageBox::warning(this, tr("ID Duplicato"),
+                tr("Esiste già una stazione con ID: %1")
+                    .arg(QString::fromStdString(station->get_id())));
+            return;
+        }
+        
+        // Add station to network
+        network->add_node(*station);
+        
+        // Update view
+        updateStationsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Stazione '%1' aggiunta con successo")
+                .arg(QString::fromStdString(station->get_name())), 
+            3000);
+    }
 }
 
 void MainWindow::editStation() {
-    QMessageBox::information(this, tr("Modifica Stazione"),
-        tr("Dialog modifica stazione - da implementare"));
+    // Get selected station
+    QModelIndexList selection = stationsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una stazione da modificare."));
+        return;
+    }
+    
+    // Get station ID from first column
+    QModelIndex index = selection.first();
+    QString stationId = stationsModel->data(
+        stationsModel->index(index.row(), 0)).toString();
+    
+    auto station = network->get_node(stationId.toStdString());
+    if (!station) {
+        QMessageBox::warning(this, tr("Errore"),
+            tr("Stazione non trovata."));
+        return;
+    }
+    
+    // Open dialog in edit mode
+    StationDialog dialog(station, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto updatedStation = dialog.getStation();
+        
+        // Remove old station and add updated one
+        network->remove_node(station->get_id());
+        network->add_node(*updatedStation);
+        
+        // Update view
+        updateStationsView();
+        updateConnectionsView(); // Connections might reference this station
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Stazione '%1' modificata con successo")
+                .arg(QString::fromStdString(updatedStation->get_name())), 
+            3000);
+    }
 }
 
 void MainWindow::deleteStation() {
-    QMessageBox::information(this, tr("Elimina Stazione"),
-        tr("Funzione elimina stazione - da implementare"));
+    // Get selected station
+    QModelIndexList selection = stationsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una stazione da eliminare."));
+        return;
+    }
+    
+    // Get station info
+    QModelIndex index = selection.first();
+    QString stationId = stationsModel->data(
+        stationsModel->index(index.row(), 0)).toString();
+    QString stationName = stationsModel->data(
+        stationsModel->index(index.row(), 1)).toString();
+    
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        tr("Conferma Eliminazione"),
+        tr("Sei sicuro di voler eliminare la stazione '%1'?\n\n"
+           "Verranno eliminate anche tutte le connessioni associate.")
+            .arg(stationName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Remove station (this will also remove connected edges)
+        network->remove_node(stationId.toStdString());
+        
+        // Update views
+        updateStationsView();
+        updateConnectionsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Stazione '%1' eliminata con successo").arg(stationName), 
+            3000);
+    }
 }
 
 void MainWindow::addConnection() {
-    QMessageBox::information(this, tr("Aggiungi Connessione"),
-        tr("Dialog aggiunta connessione - da implementare"));
+    // Check if we have at least 2 stations
+    if (network->get_all_nodes().size() < 2) {
+        QMessageBox::information(this, tr("Stazioni Insufficienti"),
+            tr("Aggiungi almeno due stazioni prima di creare una connessione."));
+        return;
+    }
+    
+    ConnectionDialog dialog(network, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto connection = dialog.getConnection();
+        
+        // Add connection to network (bidirectional)
+        network->add_edge(*connection);
+        
+        // Update view
+        updateConnectionsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Connessione aggiunta con successo"), 
+            3000);
+    }
 }
 
 void MainWindow::editConnection() {
-    QMessageBox::information(this, tr("Modifica Connessione"),
-        tr("Dialog modifica connessione - da implementare"));
+    // Get selected connection
+    QModelIndexList selection = connectionsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una connessione da modificare."));
+        return;
+    }
+    
+    // Get connection info from table
+    QModelIndex index = selection.first();
+    QString fromId = connectionsModel->data(
+        connectionsModel->index(index.row(), 0)).toString();
+    QString toId = connectionsModel->data(
+        connectionsModel->index(index.row(), 1)).toString();
+    
+    // Find the edge in the network
+    std::shared_ptr<Edge> connection = nullptr;
+    for (const auto& edge : network->get_all_edges()) {
+        if ((edge->get_from_node() == fromId.toStdString() && 
+             edge->get_to_node() == toId.toStdString()) ||
+            (edge->get_from_node() == toId.toStdString() && 
+             edge->get_to_node() == fromId.toStdString())) {
+            connection = edge;
+            break;
+        }
+    }
+    
+    if (!connection) {
+        QMessageBox::warning(this, tr("Errore"),
+            tr("Connessione non trovata."));
+        return;
+    }
+    
+    // Open dialog in edit mode
+    ConnectionDialog dialog(network, connection, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto updatedConnection = dialog.getConnection();
+        
+        // Remove old connection
+        network->remove_edge(connection->get_from_node(), 
+                            connection->get_to_node());
+        
+        // Add updated connection
+        network->add_edge(*updatedConnection);
+        
+        // Update view
+        updateConnectionsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Connessione modificata con successo"), 
+            3000);
+    }
 }
 
 void MainWindow::deleteConnection() {
-    QMessageBox::information(this, tr("Elimina Connessione"),
-        tr("Funzione elimina connessione - da implementare"));
+    // Get selected connection
+    QModelIndexList selection = connectionsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una connessione da eliminare."));
+        return;
+    }
+    
+    // Get connection info
+    QModelIndex index = selection.first();
+    QString fromName = connectionsModel->data(
+        connectionsModel->index(index.row(), 0)).toString();
+    QString toName = connectionsModel->data(
+        connectionsModel->index(index.row(), 1)).toString();
+    QString fromId = connectionsModel->data(
+        connectionsModel->index(index.row(), 0)).toString();
+    QString toId = connectionsModel->data(
+        connectionsModel->index(index.row(), 1)).toString();
+    
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        tr("Conferma Eliminazione"),
+        tr("Sei sicuro di voler eliminare la connessione tra '%1' e '%2'?")
+            .arg(fromName, toName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Remove connection
+        network->remove_edge(fromId.toStdString(), toId.toStdString());
+        
+        // Update view
+        updateConnectionsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Connessione eliminata con successo"), 
+            3000);
+    }
 }
 
 void MainWindow::addLine() {

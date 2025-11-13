@@ -19,6 +19,8 @@
 #include "../include/railway_network.hpp"
 #include "../include/schedule.hpp"
 #include "../include/serialization.hpp"
+#include "station_dialog.hpp"
+#include "connection_dialog.hpp"
 
 namespace fdc {
 
