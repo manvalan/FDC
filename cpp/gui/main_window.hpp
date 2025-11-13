@@ -23,6 +23,7 @@
 #include "connection_dialog.hpp"
 #include "train_dialog.hpp"
 #include "line_dialog.hpp"
+#include "schedule_dialog.hpp"
 
 namespace fdc {
 

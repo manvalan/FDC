@@ -28,6 +28,8 @@ set(GUI_SOURCES
     train_dialog.hpp
     line_dialog.cpp
     line_dialog.hpp
+    schedule_dialog.cpp
+    schedule_dialog.hpp
 )
 
 # Create executable

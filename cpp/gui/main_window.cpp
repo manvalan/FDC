@@ -1071,18 +1071,84 @@ void MainWindow::deleteTrain() {
 }
 
 void MainWindow::addSchedule() {
-    QMessageBox::information(this, tr("Aggiungi Orario"),
-        tr("Dialog aggiunta orario - da implementare"));
+    ScheduleDialog dialog(network, trains, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        if (dialog.validate()) {
+            auto schedule = dialog.getSchedule();
+            if (schedule) {
+                // Generate unique schedule ID
+                std::string scheduleId = "SCH_" + schedule->get_train_id() + "_" + 
+                                       std::to_string(schedules.size() + 1);
+                schedule->set_schedule_id(scheduleId);
+                
+                schedules.push_back(schedule);
+                updateSchedulesView();
+                setModified(true);
+                
+                QMessageBox::information(this, tr("Successo"),
+                    tr("Orario creato con successo."));
+            }
+        }
+    }
 }
 
 void MainWindow::editSchedule() {
-    QMessageBox::information(this, tr("Modifica Orario"),
-        tr("Dialog modifica orario - da implementare"));
+    QModelIndexList selected = schedulesTreeView->selectionModel()->selectedRows();
+    if (selected.isEmpty()) {
+        QMessageBox::warning(this, tr("Nessuna Selezione"),
+            tr("Seleziona un orario da modificare."));
+        return;
+    }
+    
+    int row = selected.first().row();
+    if (row >= 0 && row < static_cast<int>(schedules.size())) {
+        auto& schedule = schedules[row];
+        
+        ScheduleDialog dialog(network, trains, schedule, this);
+        
+        if (dialog.exec() == QDialog::Accepted) {
+            if (dialog.validate()) {
+                auto newSchedule = dialog.getSchedule();
+                if (newSchedule) {
+                    // Keep the same schedule ID
+                    newSchedule->set_schedule_id(schedule->get_schedule_id());
+                    schedules[row] = newSchedule;
+                    updateSchedulesView();
+                    setModified(true);
+                    
+                    QMessageBox::information(this, tr("Successo"),
+                        tr("Orario modificato con successo."));
+                }
+            }
+        }
+    }
 }
 
 void MainWindow::deleteSchedule() {
-    QMessageBox::information(this, tr("Elimina Orario"),
-        tr("Funzione elimina orario - da implementare"));
+    QModelIndexList selected = schedulesTreeView->selectionModel()->selectedRows();
+    if (selected.isEmpty()) {
+        QMessageBox::warning(this, tr("Nessuna Selezione"),
+            tr("Seleziona un orario da eliminare."));
+        return;
+    }
+    
+    int row = selected.first().row();
+    if (row >= 0 && row < static_cast<int>(schedules.size())) {
+        const auto& schedule = schedules[row];
+        
+        QMessageBox::StandardButton reply = QMessageBox::question(this,
+            tr("Conferma Eliminazione"),
+            tr("Sei sicuro di voler eliminare l'orario per il treno '%1'?")
+                .arg(QString::fromStdString(schedule->get_train_id())),
+            QMessageBox::Yes | QMessageBox::No);
+        
+        if (reply == QMessageBox::Yes) {
+            schedules.erase(schedules.begin() + row);
+            updateSchedulesView();
+            setModified(true);
+        }
+    }
 }
 
 void MainWindow::filterSchedulesByLine(int lineIndex) {
@@ -1111,15 +1177,88 @@ void MainWindow::onLineSelectionChanged() {
 }
 
 void MainWindow::onScheduleSelectionChanged() {
-    // TODO: Aggiornare dettagli schedule selezionato
-    QModelIndexList selected = schedulesTreeView->selectionModel()->selectedIndexes();
+    QModelIndexList selected = schedulesTreeView->selectionModel()->selectedRows();
     if (selected.isEmpty()) {
         scheduleDetailsText->clear();
         return;
     }
     
-    // Placeholder: mostra info schedule
-    scheduleDetailsText->setText(tr("Dettagli orario selezionato (da implementare)"));
+    int row = selected.first().row();
+    if (row >= 0 && row < static_cast<int>(schedules.size())) {
+        const auto& schedule = schedules[row];
+        
+        QString details = "<h3>📋 Dettagli Orario</h3>";
+        
+        // Train info
+        details += "<p><b>Treno:</b> " + QString::fromStdString(schedule->get_train_id()) + "<br>";
+        details += "<b>ID Orario:</b> " + QString::fromStdString(schedule->get_schedule_id()) + "</p>";
+        
+        // Find train details
+        for (const auto& train : trains) {
+            if (train->get_id() == schedule->get_train_id()) {
+                details += "<p><b>Tipo:</b> " + QString::fromStdString(train_type_to_string(train->get_type())) + "<br>";
+                details += "<b>Velocità Max:</b> " + QString::number(train->get_max_speed(), 'f', 0) + " km/h</p>";
+                break;
+            }
+        }
+        
+        // Schedule summary
+        auto totalDuration = schedule->get_total_duration();
+        int hours = totalDuration.count() / 3600;
+        int minutes = (totalDuration.count() % 3600) / 60;
+        
+        details += "<p><b>Durata Totale:</b> " + QString::number(hours) + "h " + 
+                  QString::number(minutes) + "m<br>";
+        details += "<b>Distanza Totale:</b> " + QString::number(schedule->get_total_distance(), 'f', 1) + " km<br>";
+        details += "<b>Velocità Media:</b> " + QString::number(schedule->get_average_speed(), 'f', 1) + " km/h</p>";
+        
+        // Stops table
+        details += "<h4>🚉 Fermate:</h4>";
+        details += "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse; width:100%'>";
+        details += "<tr style='background-color:#e0e0e0'>";
+        details += "<th>Stazione</th><th>Arrivo</th><th>Partenza</th><th>Binario</th><th>Sosta</th>";
+        details += "</tr>";
+        
+        const auto& stops = schedule->get_stops();
+        for (size_t i = 0; i < stops.size(); ++i) {
+            const auto& stop = stops[i];
+            auto node = network->get_node(stop.get_node_id());
+            
+            QString stationName = node ? QString::fromStdString(node->get_name()) 
+                                      : QString::fromStdString(stop.get_node_id());
+            
+            auto arrivalTime = std::chrono::system_clock::to_time_t(stop.get_arrival());
+            QDateTime arrivalQt = QDateTime::fromSecsSinceEpoch(arrivalTime);
+            
+            auto departureTime = std::chrono::system_clock::to_time_t(stop.get_departure());
+            QDateTime departureQt = QDateTime::fromSecsSinceEpoch(departureTime);
+            
+            auto dwellTime = stop.get_dwell_time();
+            int dwellMinutes = dwellTime.count() / 60;
+            
+            QString platform = stop.get_platform() ? QString::number(*stop.get_platform()) : "-";
+            
+            QString rowColor = (i % 2 == 0) ? "#ffffff" : "#f5f5f5";
+            details += "<tr style='background-color:" + rowColor + "'>";
+            details += "<td>" + stationName + "</td>";
+            details += "<td>" + arrivalQt.toString("HH:mm") + "</td>";
+            details += "<td>" + departureQt.toString("HH:mm") + "</td>";
+            details += "<td align='center'>" + platform + "</td>";
+            details += "<td align='center'>" + QString::number(dwellMinutes) + " min</td>";
+            details += "</tr>";
+        }
+        
+        details += "</table>";
+        
+        // Validation status
+        if (schedule->is_valid()) {
+            details += "<p style='color:green'>✅ <b>Orario valido</b></p>";
+        } else {
+            details += "<p style='color:red'>❌ <b>Orario non valido</b></p>";
+        }
+        
+        scheduleDetailsText->setHtml(details);
+    }
 }
 
 void MainWindow::updateWindowTitle() {
@@ -1216,21 +1355,44 @@ void MainWindow::updateSchedulesView() {
     
     for (const auto& schedule : schedules) {
         QList<QStandardItem*> row;
+        
+        // Train ID
         row << new QStandardItem(QString::fromStdString(schedule->get_train_id()));
-        row << new QStandardItem(tr("Regionale")); // TODO: get train type
+        
+        // Train type - find the train to get its type
+        QString trainType = tr("Sconosciuto");
+        for (const auto& train : trains) {
+            if (train->get_id() == schedule->get_train_id()) {
+                trainType = QString::fromStdString(train_type_to_string(train->get_type()));
+                break;
+            }
+        }
+        row << new QStandardItem(trainType);
         
         const auto& stops = schedule->get_stops();
         if (!stops.empty()) {
             const auto& firstStop = stops.front();
             const auto& lastStop = stops.back();
             
-            // Ottieni i nodi dalla rete usando gli ID
+            // Origin and destination stations
             auto firstNode = network->get_node(firstStop.get_node_id());
             auto lastNode = network->get_node(lastStop.get_node_id());
             
             if (firstNode && lastNode) {
-                row << new QStandardItem(QString::fromStdString(firstNode->get_name()));
-                row << new QStandardItem(QString::fromStdString(lastNode->get_name()));
+                // Format departure time
+                auto departureTime = std::chrono::system_clock::to_time_t(firstStop.get_departure());
+                QDateTime departureQt = QDateTime::fromSecsSinceEpoch(departureTime);
+                QString origin = QString::fromStdString(firstNode->get_name()) + 
+                               " (" + departureQt.toString("HH:mm") + ")";
+                
+                // Format arrival time
+                auto arrivalTime = std::chrono::system_clock::to_time_t(lastStop.get_arrival());
+                QDateTime arrivalQt = QDateTime::fromSecsSinceEpoch(arrivalTime);
+                QString destination = QString::fromStdString(lastNode->get_name()) + 
+                                    " (" + arrivalQt.toString("HH:mm") + ")";
+                
+                row << new QStandardItem(origin);
+                row << new QStandardItem(destination);
             } else {
                 row << new QStandardItem(tr("-"));
                 row << new QStandardItem(tr("-"));
