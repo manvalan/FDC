@@ -416,3 +416,136 @@ class ScheduleBuilder:
             print(f"{node_name:<20} {arr:<10} {dep:<10} {plat:<8} {delay:<8}")
         
         print(f"{'='*70}\n")
+
+
+def auto_assign_platforms(schedules: List[TrainSchedule], network) -> Dict[str, List[str]]:
+    """
+    Automatically assign platforms to all trains in their schedules.
+    
+    Args:
+        schedules: List of train schedules to assign platforms
+        network: Railway network with node information
+        
+    Returns:
+        Dictionary mapping schedule_id to list of issues/conflicts (empty if successful)
+    """
+    issues = {}
+    
+    # Clear all platform reservations first
+    for node in network.nodes.values():
+        node.clear_platform_schedule()
+    
+    # Sort schedules by departure time to process in chronological order
+    sorted_schedules = sorted(schedules, 
+                            key=lambda s: s.stops[0].departure_time if s.stops[0].departure_time else datetime.max)
+    
+    for schedule in sorted_schedules:
+        schedule_issues = []
+        
+        for stop in schedule.stops:
+            node = network.get_node(stop.node_id)
+            if not node:
+                continue
+            
+            # Determine time window for this stop
+            arrival = stop.arrival_time
+            departure = stop.departure_time
+            
+            # First stop: only departure matters
+            if not arrival:
+                arrival = departure
+            # Last stop: only arrival matters
+            if not departure:
+                departure = arrival
+            
+            if not arrival or not departure:
+                continue
+            
+            # Try to keep existing platform assignment if available
+            if stop.platform and node.is_platform_available(stop.platform, arrival, departure):
+                node.reserve_platform(stop.platform, schedule.schedule_id, arrival, departure)
+            else:
+                # Find an available platform
+                available_platform = node.get_available_platform(arrival, departure)
+                
+                if available_platform:
+                    stop.platform = available_platform
+                    node.reserve_platform(available_platform, schedule.schedule_id, arrival, departure)
+                else:
+                    # No platform available - record issue
+                    issue = f"No platform available at {node.name} for {schedule.train.name} at {arrival.strftime('%H:%M')}"
+                    schedule_issues.append(issue)
+                    # Assign to platform 1 anyway (with conflict)
+                    stop.platform = 1
+        
+        if schedule_issues:
+            issues[schedule.schedule_id] = schedule_issues
+    
+    return issues
+
+
+def check_platform_conflicts(schedules: List[TrainSchedule], network) -> List[Dict]:
+    """
+    Check for platform conflicts across all schedules.
+    
+    Returns:
+        List of conflict dictionaries with station, platform, trains, and time info
+    """
+    conflicts = []
+    
+    # Build platform usage map: {node_id: {platform: [(schedule_id, arrival, departure)]}}
+    platform_usage = {}
+    
+    for schedule in schedules:
+        for stop in schedule.stops:
+            if not stop.platform:
+                continue
+            
+            node_id = stop.node_id
+            platform = stop.platform
+            arrival = stop.arrival_time or stop.departure_time
+            departure = stop.departure_time or stop.arrival_time
+            
+            if not arrival or not departure:
+                continue
+            
+            if node_id not in platform_usage:
+                platform_usage[node_id] = {}
+            if platform not in platform_usage[node_id]:
+                platform_usage[node_id][platform] = []
+            
+            platform_usage[node_id][platform].append({
+                'schedule_id': schedule.schedule_id,
+                'train_name': schedule.train.name,
+                'arrival': arrival,
+                'departure': departure
+            })
+    
+    # Check for overlaps on same platform
+    for node_id, platforms in platform_usage.items():
+        node = network.get_node(node_id)
+        node_name = node.name if node else node_id
+        
+        for platform, usages in platforms.items():
+            # Sort by arrival time
+            usages.sort(key=lambda x: x['arrival'])
+            
+            # Check consecutive pairs for overlap
+            for i in range(len(usages) - 1):
+                u1 = usages[i]
+                u2 = usages[i + 1]
+                
+                # Check if time windows overlap
+                if u1['departure'] > u2['arrival']:
+                    conflicts.append({
+                        'node_id': node_id,
+                        'node_name': node_name,
+                        'platform': platform,
+                        'train1': u1['train_name'],
+                        'train2': u2['train_name'],
+                        'time1': f"{u1['arrival'].strftime('%H:%M')} - {u1['departure'].strftime('%H:%M')}",
+                        'time2': f"{u2['arrival'].strftime('%H:%M')} - {u2['departure'].strftime('%H:%M')}"
+                    })
+    
+    return conflicts
+

@@ -46,6 +46,8 @@ class Node:
         self.capacity = capacity
         self.platforms = platforms
         self._current_occupancy = 0
+        # Track platform occupancy: {platform_num: [(train_id, start_time, end_time), ...]}
+        self._platform_schedule = {i: [] for i in range(1, platforms + 1)}
     
     @property
     def current_occupancy(self) -> int:
@@ -79,6 +81,88 @@ class Node:
             self._current_occupancy -= 1
             return True
         return False
+    
+    def is_platform_available(self, platform: int, start_time, end_time) -> bool:
+        """
+        Check if a specific platform is available for a given time window.
+        
+        Args:
+            platform: Platform number (1-indexed)
+            start_time: Arrival time (datetime)
+            end_time: Departure time (datetime)
+            
+        Returns:
+            bool: True if platform is available for the entire time window
+        """
+        if platform < 1 or platform > self.platforms:
+            return False
+        
+        if platform not in self._platform_schedule:
+            return True
+        
+        # Check for time conflicts with existing reservations
+        for train_id, reserved_start, reserved_end in self._platform_schedule[platform]:
+            # Check if time windows overlap
+            if not (end_time <= reserved_start or start_time >= reserved_end):
+                return False  # Conflict detected
+        
+        return True
+    
+    def get_available_platform(self, start_time, end_time) -> Optional[int]:
+        """
+        Find the first available platform for the given time window.
+        
+        Args:
+            start_time: Arrival time (datetime)
+            end_time: Departure time (datetime)
+            
+        Returns:
+            Platform number if available, None if all platforms are occupied
+        """
+        for platform in range(1, self.platforms + 1):
+            if self.is_platform_available(platform, start_time, end_time):
+                return platform
+        return None
+    
+    def reserve_platform(self, platform: int, train_id: str, start_time, end_time) -> bool:
+        """
+        Reserve a platform for a train during a specific time window.
+        
+        Args:
+            platform: Platform number (1-indexed)
+            train_id: Unique train identifier
+            start_time: Arrival time (datetime)
+            end_time: Departure time (datetime)
+            
+        Returns:
+            bool: True if reservation successful, False if conflict
+        """
+        if not self.is_platform_available(platform, start_time, end_time):
+            return False
+        
+        if platform not in self._platform_schedule:
+            self._platform_schedule[platform] = []
+        
+        self._platform_schedule[platform].append((train_id, start_time, end_time))
+        return True
+    
+    def release_platform(self, platform: int, train_id: str):
+        """
+        Release a platform reservation for a train.
+        
+        Args:
+            platform: Platform number
+            train_id: Train identifier
+        """
+        if platform in self._platform_schedule:
+            self._platform_schedule[platform] = [
+                (tid, start, end) for tid, start, end in self._platform_schedule[platform]
+                if tid != train_id
+            ]
+    
+    def clear_platform_schedule(self):
+        """Clear all platform reservations."""
+        self._platform_schedule = {i: [] for i in range(1, self.platforms + 1)}
     
     def to_dict(self) -> dict:
         """Convert node to dictionary representation."""

@@ -4,11 +4,12 @@ Railway Network Management GUI Application
 Complete graphical interface for managing railway networks, trains, and schedules.
 """
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog, colorchooser
+from tkinter import ttk, messagebox, filedialog, colorchooser, simpledialog
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timedelta
 import json
 import os
+import networkx as nx
 
 from node import Node, NodeType
 from edge import Edge, TrackType
@@ -117,6 +118,9 @@ class RailwayGUI:
         trains_menu.add_command(label="➕ Serie di Treni (Cadenzati)", command=self.add_train_series_dialog)
         trains_menu.add_command(label="Gestisci Orari", command=self.manage_schedules_dialog)
         trains_menu.add_separator()
+        trains_menu.add_command(label="🚉 Gestione Binari", command=self.show_platform_manager)
+        trains_menu.add_command(label="🔄 Riassegna Binari Automaticamente", command=lambda: [self.auto_assign_all_platforms(), messagebox.showinfo("Completato", "Binari riassegnati automaticamente")])
+        trains_menu.add_separator()
         trains_menu.add_command(label="Simula Traffico", command=self.simulate_traffic)
         
         # View menu
@@ -151,6 +155,7 @@ class RailwayGUI:
         ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
         ttk.Button(toolbar, text="🚂 Treno", command=self.add_train_dialog).pack(side=tk.LEFT, padx=2)
         ttk.Button(toolbar, text="📅 Orari", command=self.manage_schedules_dialog).pack(side=tk.LEFT, padx=2)
+        ttk.Button(toolbar, text="🚉 Binari", command=self.show_platform_manager).pack(side=tk.LEFT, padx=2)
         ttk.Separator(toolbar, orient=tk.VERTICAL).pack(side=tk.LEFT, fill=tk.Y, padx=5)
         ttk.Button(toolbar, text="🗺️ Mappa", command=self.show_network_map).pack(side=tk.LEFT, padx=2)
         ttk.Button(toolbar, text="📊 Grafico", command=self.show_timetable_diagram).pack(side=tk.LEFT, padx=2)
@@ -289,24 +294,54 @@ class RailwayGUI:
     
     def setup_trains_tab(self):
         """Setup trains and schedules tab."""
+        # Main container
+        main_container = ttk.Frame(self.trains_tab)
+        main_container.pack(fill=tk.BOTH, expand=True)
+        
+        # Filter bar at top
+        filter_frame = ttk.Frame(main_container)
+        filter_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        ttk.Label(filter_frame, text="Filtra per Linea:").pack(side=tk.LEFT, padx=5)
+        
+        self.train_filter_var = tk.StringVar(value="Tutte le linee")
+        self.train_filter_combo = ttk.Combobox(filter_frame, textvariable=self.train_filter_var, 
+                                               width=30, state='readonly')
+        self.train_filter_combo['values'] = ["Tutte le linee"]
+        self.train_filter_combo.pack(side=tk.LEFT, padx=5)
+        self.train_filter_combo.bind('<<ComboboxSelected>>', lambda e: self.update_trains_list())
+        
+        ttk.Button(filter_frame, text="🔄 Aggiorna", command=self.update_trains_list).pack(side=tk.LEFT, padx=5)
+        
         # Split into trains list and schedule details
-        paned = ttk.PanedWindow(self.trains_tab, orient=tk.VERTICAL)
+        paned = ttk.PanedWindow(main_container, orient=tk.VERTICAL)
         paned.pack(fill=tk.BOTH, expand=True)
         
-        # Trains list
+        # Trains list - EXPANDED HEIGHT
         trains_frame = ttk.LabelFrame(paned, text="Treni e Orari", padding=10)
-        paned.add(trains_frame, weight=1)
+        paned.add(trains_frame, weight=2)  # Increased weight from 1 to 2
         
         self.trains_tree = ttk.Treeview(trains_frame, 
-                                       columns=('Train', 'Type', 'Origin', 'Dest', 'Departure', 'Arrival'),
-                                       show='tree headings', height=10)
+                                       columns=('Train', 'Type', 'Line', 'Origin', 'Dest', 'Departure', 'Arrival'),
+                                       show='tree headings', height=18)  # Increased height from 10 to 18
         self.trains_tree.heading('#0', text='Schedule ID')
         self.trains_tree.heading('Train', text='Treno')
         self.trains_tree.heading('Type', text='Tipo')
+        self.trains_tree.heading('Line', text='Linea')
         self.trains_tree.heading('Origin', text='Origine')
         self.trains_tree.heading('Dest', text='Destinazione')
         self.trains_tree.heading('Departure', text='Partenza')
         self.trains_tree.heading('Arrival', text='Arrivo')
+        
+        # Adjusted column widths to prevent overlapping
+        self.trains_tree.column('#0', width=100)
+        self.trains_tree.column('Train', width=120)
+        self.trains_tree.column('Type', width=80)
+        self.trains_tree.column('Line', width=100)
+        self.trains_tree.column('Origin', width=120)
+        self.trains_tree.column('Dest', width=120)
+        self.trains_tree.column('Departure', width=70)
+        self.trains_tree.column('Arrival', width=70)
         
         scrollbar = ttk.Scrollbar(trains_frame, orient=tk.VERTICAL, command=self.trains_tree.yview)
         self.trains_tree.configure(yscrollcommand=scrollbar.set)
@@ -314,23 +349,38 @@ class RailwayGUI:
         self.trains_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Schedule details
+        # Schedule details - Split into two sections: info (left) and diagram (right)
         details_frame = ttk.LabelFrame(paned, text="Dettagli Orario", padding=10)
         paned.add(details_frame, weight=1)
         
-        self.schedule_details_text = tk.Text(details_frame, wrap=tk.WORD, height=15)
-        scrollbar2 = ttk.Scrollbar(details_frame, orient=tk.VERTICAL, command=self.schedule_details_text.yview)
+        # Split details_frame horizontally
+        details_paned = ttk.PanedWindow(details_frame, orient=tk.HORIZONTAL)
+        details_paned.pack(fill=tk.BOTH, expand=True)
+        
+        # Left side: Text info
+        info_frame = ttk.Frame(details_paned)
+        details_paned.add(info_frame, weight=1)
+        
+        self.schedule_details_text = tk.Text(info_frame, wrap=tk.WORD, height=15)
+        scrollbar2 = ttk.Scrollbar(info_frame, orient=tk.VERTICAL, command=self.schedule_details_text.yview)
         self.schedule_details_text.configure(yscrollcommand=scrollbar2.set)
         
         self.schedule_details_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar2.pack(side=tk.RIGHT, fill=tk.Y)
         
+        # Right side: Diagram canvas
+        diagram_frame = ttk.Frame(details_paned)
+        details_paned.add(diagram_frame, weight=1)
+        
+        # Canvas for embedding matplotlib figure
+        self.diagram_canvas = None
+        self.diagram_frame_container = diagram_frame
+        
         # Create context menu for trains
         self.trains_menu = tk.Menu(self.root, tearoff=0)
         self.trains_menu.add_command(label="✏️ Modifica Treno", command=self.edit_schedule)
         self.trains_menu.add_command(label="🗑️ Elimina Treno", command=self.delete_schedule)
-        self.trains_menu.add_separator()
-        self.trains_menu.add_command(label="📊 Visualizza Grafico Marcia", command=self.show_train_diagram)
+        # Nota: Il grafico è già visualizzato nel pannello a destra quando si seleziona un treno
         
         # Bind events
         self.trains_tree.bind('<<TreeviewSelect>>', self.on_schedule_selected)
@@ -391,6 +441,10 @@ class RailwayGUI:
                         self.schedules.append(schedule)
                     except Exception as e:
                         print(f"Errore nel caricamento schedule: {e}")
+                
+                # Auto-assign platforms after loading
+                if self.schedules:
+                    self.auto_assign_all_platforms()
                 
                 self.current_file = filename
                 self.update_all_displays()
@@ -1039,9 +1093,14 @@ class RailwayGUI:
                     except:
                         messagebox.showwarning("Attenzione", "Formato ora arrivo non valido, verrà ignorato")
                 
-                # Create schedule
+                # Create schedule - generate ID if empty
+                schedule_id_input = schedule_id_entry.get().strip()
+                if not schedule_id_input:
+                    # Generate unique schedule ID automatically
+                    schedule_id_input = f"SCH_{train.id}_{int(start_time.timestamp())}"
+                
                 schedule = ScheduleBuilder.create_schedule(
-                    schedule_id=schedule_id_entry.get().strip(),
+                    schedule_id=schedule_id_input,
                     train=train,
                     route=route,
                     network=self.network,
@@ -1052,6 +1111,8 @@ class RailwayGUI:
                 
                 if schedule:
                     self.schedules.append(schedule)
+                    # Auto-assign platforms after adding train
+                    self.auto_assign_all_platforms()
                     self.update_all_displays()
                     self.update_status(f"Treno '{train.name}' aggiunto")
                     dialog.destroy()
@@ -1700,10 +1761,10 @@ class RailwayGUI:
             self.update_status(f"Linea '{line_id}' eliminata")
     
     def edit_schedule(self):
-        """Edit selected schedule (train) with detailed timetable editing."""
+        """Show train schedule info (read-only view with click-to-edit rows)."""
         selection = self.trains_tree.selection()
         if not selection:
-            messagebox.showwarning("Attenzione", "Selezionare un treno da modificare")
+            messagebox.showwarning("Attenzione", "Selezionare un treno da visualizzare")
             return
         
         item = self.trains_tree.item(selection[0])
@@ -1720,329 +1781,503 @@ class RailwayGUI:
             messagebox.showerror("Errore", "Orario non trovato")
             return
         
-        # Create edit dialog
+        # Create info dialog - LARGER SIZE for better visibility
         dialog = tk.Toplevel(self.root)
-        dialog.title(f"Modifica Treno: {schedule_id}")
-        dialog.geometry("700x700")  # Increased height for better button visibility
+        dialog.title(f"📋 Info Treno: {schedule.train.name}")
+        dialog.geometry("800x600")
         dialog.transient(self.root)
         dialog.grab_set()
         
-        # Create main frame with scrollbar
-        main_frame = ttk.Frame(dialog)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # Main container
+        main_frame = ttk.Frame(dialog, padding=15)
+        main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Train info section
-        info_frame = ttk.LabelFrame(main_frame, text="Informazioni Treno", padding=10)
+        # ═══════════════════════════════════════════════════════════════
+        # SEZIONE 1: INFORMAZIONI TRENO (READ-ONLY)
+        # ═══════════════════════════════════════════════════════════════
+        info_frame = ttk.LabelFrame(main_frame, text="⚙️ Informazioni Treno", padding=10)
         info_frame.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Label(info_frame, text="ID Treno:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=5)
-        id_label = ttk.Label(info_frame, text=schedule.train.id, font=('TkDefaultFont', 10, 'bold'))
-        id_label.grid(row=0, column=1, sticky=tk.W, padx=5, pady=5)
+        first_stop = schedule.stops[0]
+        last_stop = schedule.stops[-1]
+        origin_name = self.network.nodes[first_stop.node_id].name if first_stop.node_id in self.network.nodes else first_stop.node_id
+        dest_name = self.network.nodes[last_stop.node_id].name if last_stop.node_id in self.network.nodes else last_stop.node_id
         
-        ttk.Label(info_frame, text="Tipo Treno:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=5)
-        type_var = tk.StringVar(value=schedule.train.train_type.value)
-        type_combo = ttk.Combobox(info_frame, textvariable=type_var, width=20, state='readonly',
-                                  values=[t.value for t in TrainType])
-        type_combo.grid(row=1, column=1, sticky=tk.W, padx=5, pady=5)
+        info_text = f"""
+        🚂 Treno: {schedule.train.name}
+        📍 Percorso: {origin_name} → {dest_name}
+        🏷️ Tipo: {schedule.train.train_type.value}
+        ⚡ Velocità max: {schedule.train.max_speed} km/h
+        🎯 Priorità: {schedule.priority}
+        🕐 Partenza: {first_stop.departure_time.strftime('%H:%M')}
+        🏁 Arrivo: {last_stop.arrival_time.strftime('%H:%M') if last_stop.arrival_time else '--:--'}
+        """
         
-        # Will be set later after stop_entries is populated
-        type_var_trace_id = None
+        info_label = ttk.Label(info_frame, text=info_text, font=('TkDefaultFont', 10))
+        info_label.pack(anchor=tk.W)
         
-        ttk.Label(info_frame, text="Priorità:").grid(row=2, column=0, sticky=tk.W, padx=5, pady=5)
-        priority_var = tk.StringVar(value=str(schedule.priority))
-        priority_spinbox = ttk.Spinbox(info_frame, from_=1, to=10, width=20, textvariable=priority_var)
-        priority_spinbox.grid(row=2, column=1, sticky=tk.W, padx=5, pady=5)
+        # ═══════════════════════════════════════════════════════════════
+        # SEZIONE 2: ORARIO DETTAGLIATO (READ-ONLY + CLICKABLE)
+        # ═══════════════════════════════════════════════════════════════
+        schedule_frame = ttk.LabelFrame(main_frame, text="🛤️ Orario Dettagliato (Doppio click su riga per modificare)", padding=10)
+        schedule_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Timetable section
-        timetable_frame = ttk.LabelFrame(main_frame, text="Orario Dettagliato", padding=10)
-        timetable_frame.pack(fill=tk.BOTH, expand=True)
+        # Create Treeview for schedule
+        columns = ('station', 'arrival', 'departure', 'dwell', 'platform')
+        tree = ttk.Treeview(schedule_frame, columns=columns, show='headings', height=15)
         
-        # Create canvas with scrollbar for timetable
-        canvas = tk.Canvas(timetable_frame, height=350)
-        scrollbar = ttk.Scrollbar(timetable_frame, orient="vertical", command=canvas.yview)
-        scrollable_frame = ttk.Frame(canvas)
+        tree.heading('station', text='Stazione')
+        tree.heading('arrival', text='Arrivo')
+        tree.heading('departure', text='Partenza')
+        tree.heading('dwell', text='Sosta (min)')
+        tree.heading('platform', text='Binario')
         
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        tree.column('station', width=250, anchor=tk.W)
+        tree.column('arrival', width=100, anchor=tk.CENTER)
+        tree.column('departure', width=100, anchor=tk.CENTER)
+        tree.column('dwell', width=100, anchor=tk.CENTER)
+        tree.column('platform', width=100, anchor=tk.CENTER)
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(schedule_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
         
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
-        # Headers
-        ttk.Label(scrollable_frame, text="Stazione", font=('TkDefaultFont', 9, 'bold')).grid(
-            row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        ttk.Label(scrollable_frame, text="Arrivo (HH:MM)", font=('TkDefaultFont', 9, 'bold')).grid(
-            row=0, column=1, padx=5, pady=5)
-        ttk.Label(scrollable_frame, text="Partenza (HH:MM)", font=('TkDefaultFont', 9, 'bold')).grid(
-            row=0, column=2, padx=5, pady=5)
-        ttk.Label(scrollable_frame, text="Sosta (min)", font=('TkDefaultFont', 9, 'bold')).grid(
-            row=0, column=3, padx=5, pady=5)
+        # Populate treeview
+        for idx, stop in enumerate(schedule.stops):
+            station_name = self.network.nodes[stop.node_id].name if stop.node_id in self.network.nodes else stop.node_id
+            arrival_str = stop.arrival_time.strftime('%H:%M') if stop.arrival_time else '--:--'
+            departure_str = stop.departure_time.strftime('%H:%M') if stop.departure_time else '--:--'
+            dwell_str = str(stop.stop_duration)
+            platform_str = str(stop.platform) if stop.platform else '1'
+            
+            tree.insert('', tk.END, iid=str(idx), values=(station_name, arrival_str, departure_str, dwell_str, platform_str))
         
-        # Store time entries for each stop
-        stop_entries = []
-        
-        def update_times_realtime(changed_idx):
-            """Update all times in real-time when departure or duration changes."""
-            from datetime import datetime, timedelta
-            
-            # Update the current stop's times from the UI
-            entry = stop_entries[changed_idx]
-            stop = entry['stop']
-            
-            # Update departure time for current stop
-            if stop.departure_time:
-                try:
-                    new_dep_hour = int(entry['dep_hour'].get())
-                    new_dep_min = int(entry['dep_min'].get())
-                    stop.departure_time = stop.departure_time.replace(hour=new_dep_hour, minute=new_dep_min)
-                except (ValueError, AttributeError):
-                    pass
-            
-            # Update stop duration
-            try:
-                stop.stop_duration = int(entry['duration'].get())
-            except ValueError:
-                pass
-            
-            # Recalculate all subsequent times
-            for i in range(changed_idx, len(schedule.stops) - 1):
-                current_stop = schedule.stops[i]
-                next_stop = schedule.stops[i + 1]
-                
-                if not current_stop.departure_time:
-                    continue
-                
-                # Get edge between stations
-                current_node = current_stop.node_id
-                next_node = next_stop.node_id
-                
-                try:
-                    # Calculate travel time
-                    path_info = self.network.find_shortest_path(current_node, next_node)
-                    if path_info:
-                        path, distance_km = path_info  # Unpack tuple (path, distance)
-                        avg_speed_kmh = schedule.train.max_speed  # Use actual train speed
-                        travel_time_hours = distance_km / avg_speed_kmh
-                        travel_time = timedelta(hours=travel_time_hours)
-                        
-                        # Calculate arrival at next stop
-                        next_stop.arrival_time = current_stop.departure_time + travel_time
-                        
-                        # Update UI for arrival time
-                        next_entry = stop_entries[i + 1]
-                        next_entry['arr_hour'].set(f"{next_stop.arrival_time.hour:02d}")
-                        next_entry['arr_min'].set(f"{next_stop.arrival_time.minute:02d}")
-                        
-                        # Calculate departure from next stop (arrival + dwell time)
-                        if i < len(schedule.stops) - 2:  # Not the last stop
-                            dwell = timedelta(minutes=next_stop.stop_duration)
-                            next_stop.departure_time = next_stop.arrival_time + dwell
-                            
-                            # Update UI for departure time
-                            next_entry['dep_hour'].set(f"{next_stop.departure_time.hour:02d}")
-                            next_entry['dep_min'].set(f"{next_stop.departure_time.minute:02d}")
-                except Exception as e:
-                    print(f"Error calculating times: {e}")
-                    continue
-        
-        def update_times_on_train_type_change(*args):
-            """Recalculate all times when train type changes (affects max speed)."""
-            from datetime import timedelta
-            
-            # Ensure stop_entries is populated
-            if not stop_entries:
+        # ═══════════════════════════════════════════════════════════════
+        # FUNZIONE: MODIFICA SINGOLA FERMATA
+        # ═══════════════════════════════════════════════════════════════
+        def edit_single_stop(event):
+            """Edit single stop when clicking on row."""
+            selected = tree.selection()
+            if not selected:
                 return
             
-            # Update train type first
-            train_type_str = type_var.get()
-            old_type = schedule.train.train_type
-            
-            # Find matching train type and update ALL train characteristics
-            for tt in TrainType:
-                if tt.value == train_type_str:
-                    # Use the new method to update all characteristics including max_speed
-                    schedule.train.update_characteristics_from_type(tt)
-                    break
-            
-            # Only recalculate if type actually changed
-            if old_type == schedule.train.train_type:
-                return  # No change, skip recalculation
-            
-            # Recalculate all times from the first stop (index 0)
-            if len(schedule.stops) > 1:
-                for i in range(len(schedule.stops) - 1):
-                    current_stop = schedule.stops[i]
-                    next_stop = schedule.stops[i + 1]
-                    
-                    if not current_stop.departure_time:
-                        continue
-                    
-                    # Get edge between stations
-                    current_node = current_stop.node_id
-                    next_node = next_stop.node_id
-                    
-                    try:
-                        # Calculate travel time with NEW train speed
-                        path_info = self.network.find_shortest_path(current_node, next_node)
-                        if path_info:
-                            path, distance_km = path_info  # Unpack tuple (path, distance)
-                            avg_speed_kmh = schedule.train.max_speed  # Use actual train speed
-                            travel_time_hours = distance_km / avg_speed_kmh
-                            travel_time = timedelta(hours=travel_time_hours)
-                            
-                            # Calculate arrival at next stop
-                            next_stop.arrival_time = current_stop.departure_time + travel_time
-                            
-                            # Update UI for arrival time
-                            next_entry = stop_entries[i + 1]
-                            next_entry['arr_hour'].set(f"{next_stop.arrival_time.hour:02d}")
-                            next_entry['arr_min'].set(f"{next_stop.arrival_time.minute:02d}")
-                            
-                            # Calculate departure from next stop (arrival + dwell time)
-                            if i < len(schedule.stops) - 2:  # Not the last stop
-                                dwell = timedelta(minutes=next_stop.stop_duration)
-                                next_stop.departure_time = next_stop.arrival_time + dwell
-                                
-                                # Update UI for departure time
-                                next_entry['dep_hour'].set(f"{next_stop.departure_time.hour:02d}")
-                                next_entry['dep_min'].set(f"{next_stop.departure_time.minute:02d}")
-                    except Exception as e:
-                        print(f"Error calculating times on train type change: {e}")
-                        continue
-        
-        for idx, stop in enumerate(schedule.stops):
-            row = idx + 1
-            
-            # Station name
+            stop_idx = int(selected[0])
+            stop = schedule.stops[stop_idx]
             station_name = self.network.nodes[stop.node_id].name if stop.node_id in self.network.nodes else stop.node_id
-            ttk.Label(scrollable_frame, text=station_name).grid(row=row, column=0, padx=5, pady=2, sticky=tk.W)
             
-            # Arrival time (ALWAYS DISABLED - calculated automatically)
-            arr_frame = ttk.Frame(scrollable_frame)
-            arr_frame.grid(row=row, column=1, padx=5, pady=2)
+            # Create edit popup
+            edit_dialog = tk.Toplevel(dialog)
+            edit_dialog.title(f"✏️ Modifica Fermata: {station_name}")
+            edit_dialog.geometry("500x520")
+            edit_dialog.transient(dialog)
+            edit_dialog.grab_set()
+            
+            edit_frame = ttk.Frame(edit_dialog, padding=15)
+            edit_frame.pack(fill=tk.BOTH, expand=True)
+            
+            ttk.Label(edit_frame, text=f"🚉 Stazione: {station_name}", font=('TkDefaultFont', 11, 'bold')).pack(pady=(0, 15))
+            
+            # Arrival time
+            arrival_frame = ttk.LabelFrame(edit_frame, text="⏰ Orario Arrivo", padding=10)
+            arrival_frame.pack(fill=tk.X, pady=5)
             
             if stop.arrival_time:
+                arr_time_frame = ttk.Frame(arrival_frame)
+                arr_time_frame.pack()
+                
+                ttk.Label(arr_time_frame, text="Ore:").pack(side=tk.LEFT, padx=5)
                 arr_hour_var = tk.StringVar(value=f"{stop.arrival_time.hour:02d}")
+                arr_hour = ttk.Spinbox(arr_time_frame, from_=0, to=23, width=5, textvariable=arr_hour_var, format="%02.0f")
+                arr_hour.pack(side=tk.LEFT, padx=5)
+                
+                ttk.Label(arr_time_frame, text="Minuti:").pack(side=tk.LEFT, padx=5)
                 arr_min_var = tk.StringVar(value=f"{stop.arrival_time.minute:02d}")
+                arr_min = ttk.Spinbox(arr_time_frame, from_=0, to=59, width=5, textvariable=arr_min_var, format="%02.0f")
+                arr_min.pack(side=tk.LEFT, padx=5)
             else:
-                arr_hour_var = tk.StringVar(value="--")
-                arr_min_var = tk.StringVar(value="--")
+                ttk.Label(arrival_frame, text="(Prima stazione - nessun arrivo)", font=('TkDefaultFont', 9, 'italic')).pack()
+                arr_hour_var = None
+                arr_min_var = None
             
-            # Arrival time is ALWAYS read-only (calculated)
-            arr_hour_spin = ttk.Spinbox(arr_frame, from_=0, to=23, width=4, textvariable=arr_hour_var,
-                                       format="%02.0f", state='disabled')
-            arr_hour_spin.pack(side=tk.LEFT)
-            ttk.Label(arr_frame, text=":").pack(side=tk.LEFT)
-            arr_min_spin = ttk.Spinbox(arr_frame, from_=0, to=59, width=4, textvariable=arr_min_var,
-                                      format="%02.0f", state='disabled')
-            arr_min_spin.pack(side=tk.LEFT)
-            
-            # Departure time (disabled for last station)
-            dep_frame = ttk.Frame(scrollable_frame)
-            dep_frame.grid(row=row, column=2, padx=5, pady=2)
+            # Departure time
+            departure_frame = ttk.LabelFrame(edit_frame, text="🚀 Orario Partenza", padding=10)
+            departure_frame.pack(fill=tk.X, pady=5)
             
             if stop.departure_time:
+                dep_time_frame = ttk.Frame(departure_frame)
+                dep_time_frame.pack()
+                
+                ttk.Label(dep_time_frame, text="Ore:").pack(side=tk.LEFT, padx=5)
                 dep_hour_var = tk.StringVar(value=f"{stop.departure_time.hour:02d}")
+                dep_hour = ttk.Spinbox(dep_time_frame, from_=0, to=23, width=5, textvariable=dep_hour_var, format="%02.0f")
+                dep_hour.pack(side=tk.LEFT, padx=5)
+                
+                ttk.Label(dep_time_frame, text="Minuti:").pack(side=tk.LEFT, padx=5)
                 dep_min_var = tk.StringVar(value=f"{stop.departure_time.minute:02d}")
+                dep_min = ttk.Spinbox(dep_time_frame, from_=0, to=59, width=5, textvariable=dep_min_var, format="%02.0f")
+                dep_min.pack(side=tk.LEFT, padx=5)
             else:
-                dep_hour_var = tk.StringVar(value="--")
-                dep_min_var = tk.StringVar(value="--")
-            
-            dep_hour_spin = ttk.Spinbox(dep_frame, from_=0, to=23, width=4, textvariable=dep_hour_var,
-                                       format="%02.0f", state='disabled' if not stop.departure_time else 'normal')
-            dep_hour_spin.pack(side=tk.LEFT)
-            ttk.Label(dep_frame, text=":").pack(side=tk.LEFT)
-            dep_min_spin = ttk.Spinbox(dep_frame, from_=0, to=59, width=4, textvariable=dep_min_var,
-                                      format="%02.0f", state='disabled' if not stop.departure_time else 'normal')
-            dep_min_spin.pack(side=tk.LEFT)
+                ttk.Label(departure_frame, text="(Ultima stazione - nessuna partenza)", font=('TkDefaultFont', 9, 'italic')).pack()
+                dep_hour_var = None
+                dep_min_var = None
             
             # Stop duration
-            duration_var = tk.StringVar(value=str(stop.stop_duration))
-            duration_spin = ttk.Spinbox(scrollable_frame, from_=0, to=60, width=8, textvariable=duration_var)
-            duration_spin.grid(row=row, column=3, padx=5, pady=2)
+            dwell_frame = ttk.LabelFrame(edit_frame, text="⏱️ Tempo di Sosta", padding=10)
+            dwell_frame.pack(fill=tk.X, pady=5)
             
-            # Store all variables for this stop
-            stop_entries.append({
-                'stop': stop,
-                'arr_hour': arr_hour_var,
-                'arr_min': arr_min_var,
-                'dep_hour': dep_hour_var,
-                'dep_min': dep_min_var,
-                'duration': duration_var,
-                'dep_hour_spin': dep_hour_spin,
-                'dep_min_spin': dep_min_spin,
-                'duration_spin': duration_spin
-            })
+            dwell_time_frame = ttk.Frame(dwell_frame)
+            dwell_time_frame.pack()
             
-            # Add real-time update callbacks (only if editable)
-            if stop.departure_time:
-                dep_hour_var.trace_add('write', lambda *args, i=idx: update_times_realtime(i))
-                dep_min_var.trace_add('write', lambda *args, i=idx: update_times_realtime(i))
-            duration_var.trace_add('write', lambda *args, i=idx: update_times_realtime(i))
-        
-        # Now that stop_entries is populated, add callback for train type change
-        type_var.trace_add('write', update_times_on_train_type_change)
-        
-        def save_changes():
-            try:
-                # Update train type
-                train_type_str = type_var.get()
-                for tt in TrainType:
-                    if tt.value == train_type_str:
-                        schedule.train.train_type = tt
-                        break
-                
-                # Update priority
-                schedule.priority = int(priority_var.get())
-                
-                # Times are already updated in real-time by update_times_realtime()
-                # Just need to ensure all values are synced
-                for idx, entry_data in enumerate(stop_entries):
-                    stop = entry_data['stop']
+            ttk.Label(dwell_time_frame, text="Minuti:").pack(side=tk.LEFT, padx=5)
+            dwell_var = tk.StringVar(value=str(stop.stop_duration))
+            dwell_spin = ttk.Spinbox(dwell_time_frame, from_=0, to=120, width=10, textvariable=dwell_var)
+            dwell_spin.pack(side=tk.LEFT, padx=5)
+            
+            # Platform
+            platform_frame = ttk.LabelFrame(edit_frame, text="🛤️ Binario", padding=10)
+            platform_frame.pack(fill=tk.X, pady=5)
+            
+            platform_time_frame = ttk.Frame(platform_frame)
+            platform_time_frame.pack()
+            
+            ttk.Label(platform_time_frame, text="Numero:").pack(side=tk.LEFT, padx=5)
+            platform_var = tk.StringVar(value=str(stop.platform) if stop.platform else '1')
+            platform_spin = ttk.Spinbox(platform_time_frame, from_=1, to=20, width=10, textvariable=platform_var)
+            platform_spin.pack(side=tk.LEFT, padx=5)
+            
+            def save_stop_changes():
+                """Save changes to this stop and recalculate subsequent or previous stops."""
+                try:
+                    # Salva i valori originali per confronto
+                    old_arrival = stop.arrival_time
+                    old_departure = stop.departure_time
+                    old_dwell = stop.stop_duration
                     
-                    # Arrival times are calculated automatically (read-only)
-                    # No need to update them from UI
+                    # Update arrival
+                    if arr_hour_var and arr_min_var:
+                        stop.arrival_time = stop.arrival_time.replace(
+                            hour=int(arr_hour_var.get()),
+                            minute=int(arr_min_var.get())
+                        )
                     
-                    # Update departure time if not last stop
-                    if stop.departure_time:
-                        try:
-                            dep_h = int(entry_data['dep_hour'].get())
-                            dep_m = int(entry_data['dep_min'].get())
-                            stop.departure_time = stop.departure_time.replace(hour=dep_h, minute=dep_m)
-                        except (ValueError, AttributeError):
-                            pass
+                    # Update departure
+                    if dep_hour_var and dep_min_var:
+                        stop.departure_time = stop.departure_time.replace(
+                            hour=int(dep_hour_var.get()),
+                            minute=int(dep_min_var.get())
+                        )
                     
-                    # Update stop duration
-                    try:
-                        stop.stop_duration = int(entry_data['duration'].get())
-                    except ValueError:
-                        pass
-                
-                # Mark as modified (for save prompt)
-                self.modified = True
-                
-                self.update_all_displays()
-                self.update_status(f"Treno '{schedule.train.id}' modificato")
-                messagebox.showinfo("Successo", 
-                                   "Orario modificato con successo!\n\n"
-                                   "💾 Ricorda di salvare il file per persistere le modifiche:\n"
-                                   "File → Salva")
-                dialog.destroy()
-                
-            except Exception as e:
-                messagebox.showerror("Errore", f"Errore nel salvataggio:\n{str(e)}")
+                    # Update dwell time
+                    new_dwell = int(dwell_var.get())
+                    stop.stop_duration = new_dwell
+                    
+                    # Se la sosta è cambiata E c'è sia arrivo che partenza,
+                    # aggiorna la partenza = arrivo + sosta
+                    if old_dwell != new_dwell and stop.arrival_time and stop.departure_time:
+                        from datetime import timedelta
+                        stop.departure_time = stop.arrival_time + timedelta(minutes=new_dwell)
+                    
+                    # Update platform
+                    stop.platform = int(platform_var.get())
+                    
+                    # Verifica se QUALCHE orario è stato modificato e ricalcola AUTOMATICAMENTE
+                    time_changed = (old_arrival != stop.arrival_time or 
+                                  old_departure != stop.departure_time or 
+                                  old_dwell != new_dwell)
+                    
+                    recalc_backward = False
+                    recalc_forward = False
+                    
+                    # Ricalcolo AUTOMATICO senza conferma utente
+                    if time_changed:
+                        # Determina la direzione del ricalcolo automatico
+                        can_recalc_backward = stop_idx > 0  # Non è la prima fermata
+                        can_recalc_forward = stop_idx < len(schedule.stops) - 1  # Non è l'ultima fermata
+                        
+                        # LOGICA AUTOMATICA:
+                        # - Se arrivo è cambiato → ricalcola all'INDIETRO
+                        # - Altrimenti (partenza o sosta cambiati) → ricalcola in AVANTI
+                        if old_arrival != stop.arrival_time and can_recalc_backward:
+                            # Arrivo modificato → ricalcola precedenti
+                            recalc_backward = True
+                        elif (old_departure != stop.departure_time or old_dwell != new_dwell) and can_recalc_forward:
+                            # Partenza o sosta modificata → ricalcola successivi
+                            recalc_forward = True
+                    
+                    # Esegui ricalcolo all'INDIETRO se richiesto
+                    if recalc_backward and stop_idx > 0:
+                        from datetime import timedelta
+                        
+                        # Partendo dall'arrivo desiderato, calcola a ritroso
+                        target_arrival = stop.arrival_time
+                        
+                        for i in range(stop_idx - 1, -1, -1):  # Da stop_idx-1 a 0 (indietro)
+                            curr_stop = schedule.stops[i]
+                            next_stop = schedule.stops[i+1]
+                            
+                            # Calcola distanza tra stazioni
+                            try:
+                                path = nx.shortest_path(self.network.graph, 
+                                                      curr_stop.node_id, 
+                                                      next_stop.node_id,
+                                                      weight='distance')
+                                distance_km = sum(self.network.graph[path[j]][path[j+1]]['distance'] 
+                                                for j in range(len(path)-1))
+                                
+                                # Ottieni velocità massima del percorso
+                                max_speed = min(self.network.graph[path[j]][path[j+1]].get('max_speed', 200) 
+                                              for j in range(len(path)-1))
+                            except:
+                                distance_km = 0
+                                max_speed = 200
+                            
+                            # Calcola tempo di viaggio usando la funzione corretta
+                            if distance_km > 0:
+                                travel_details = schedule.train.calculate_travel_time(
+                                    distance_km,
+                                    max_speed,
+                                    stop_at_end=True
+                                )
+                                # calculate_travel_time ritorna il tempo in SECONDI, convertilo in ore
+                                travel_time_hours = travel_details['total_time'] / 3600.0
+                            else:
+                                travel_time_hours = 0
+                            
+                            # Calcola a ritroso: partenza = arrivo_successivo - tempo_viaggio
+                            next_arrival = next_stop.arrival_time
+                            curr_stop.departure_time = next_arrival - timedelta(hours=travel_time_hours)
+                            
+                            # Calcola arrivo = partenza - sosta (solo se non è la prima)
+                            if i > 0:
+                                curr_stop.arrival_time = curr_stop.departure_time - timedelta(minutes=curr_stop.stop_duration)
+                            else:
+                                # Prima fermata: non ha arrivo
+                                curr_stop.arrival_time = None
+                    
+                    # Esegui ricalcolo in AVANTI se richiesto
+                    if recalc_forward and stop_idx < len(schedule.stops) - 1:
+                        from datetime import timedelta
+                        
+                        for i in range(stop_idx + 1, len(schedule.stops)):
+                            prev_stop = schedule.stops[i-1]
+                            curr_stop = schedule.stops[i]
+                            
+                            # Calcola distanza tra stazioni
+                            try:
+                                path = nx.shortest_path(self.network.graph, 
+                                                      prev_stop.node_id, 
+                                                      curr_stop.node_id,
+                                                      weight='distance')
+                                distance_km = sum(self.network.graph[path[j]][path[j+1]]['distance'] 
+                                                for j in range(len(path)-1))
+                                
+                                # Ottieni velocità massima del percorso
+                                max_speed = min(self.network.graph[path[j]][path[j+1]].get('max_speed', 200) 
+                                              for j in range(len(path)-1))
+                            except:
+                                distance_km = 0
+                                max_speed = 200
+                            
+                            # Calcola tempo di viaggio usando la funzione corretta
+                            if distance_km > 0:
+                                travel_details = schedule.train.calculate_travel_time(
+                                    distance_km,
+                                    max_speed,
+                                    stop_at_end=True
+                                )
+                                # calculate_travel_time ritorna il tempo in SECONDI, convertilo in ore
+                                travel_time_hours = travel_details['total_time'] / 3600.0
+                            else:
+                                travel_time_hours = 0
+                            
+                            # Aggiorna orario arrivo
+                            departure_base = prev_stop.departure_time if prev_stop.departure_time else prev_stop.arrival_time
+                            curr_stop.arrival_time = departure_base + timedelta(hours=travel_time_hours)
+                            
+                            # Aggiorna orario partenza (solo se non è l'ultima)
+                            if i < len(schedule.stops) - 1:
+                                curr_stop.departure_time = curr_stop.arrival_time + timedelta(minutes=curr_stop.stop_duration)
+                    
+                    # Aggiorna treeview per TUTTE le fermate
+                    for idx in range(len(schedule.stops)):
+                        s = schedule.stops[idx]
+                        node_name = self.network.nodes[s.node_id].name if s.node_id in self.network.nodes else s.node_id
+                        arrival_str = s.arrival_time.strftime('%H:%M') if s.arrival_time else '--:--'
+                        departure_str = s.departure_time.strftime('%H:%M') if s.departure_time else '--:--'
+                        tree.item(str(idx), values=(node_name, arrival_str, departure_str, 
+                                                   str(s.stop_duration), str(s.platform)))
+                    
+                    # Mark as modified
+                    self.modified = True
+                    self.update_all_displays()
+                    self.update_status(f"✓ Fermata '{station_name}' modificata")
+                    
+                    edit_dialog.destroy()
+                    
+                    # Mostra messaggio appropriato in base al tipo di ricalcolo
+                    if recalc_backward or recalc_forward:
+                        direction = "precedenti" if recalc_backward else "successivi"
+                        messagebox.showinfo("Salvato", 
+                                          f"✓ Modifiche salvate!\n\n"
+                                          f"📊 Orari {direction} ricalcolati automaticamente\n\n"
+                                          "💾 Ricorda di salvare il file: File → Salva (Ctrl+S)")
+                    else:
+                        messagebox.showinfo("Salvato", 
+                                          f"✓ Modifiche alla fermata '{station_name}' salvate!\n\n"
+                                          "💾 Ricorda di salvare il file: File → Salva (Ctrl+S)")
+                    
+                except Exception as e:
+                    messagebox.showerror("Errore", f"Errore nel salvataggio:\n{str(e)}")
+            
+            # Buttons
+            btn_frame = ttk.Frame(edit_frame)
+            btn_frame.pack(pady=15)
+            
+            ttk.Button(btn_frame, text="💾 Salva", command=save_stop_changes, width=15).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="❌ Annulla", command=edit_dialog.destroy, width=15).pack(side=tk.LEFT, padx=5)
         
-        # Buttons
+        # Bind double-click to edit
+        tree.bind('<Double-Button-1>', edit_single_stop)
+        
+        # ═══════════════════════════════════════════════════════════════
+        # BUTTON: Modifica Proprietà Treno
+        # ═══════════════════════════════════════════════════════════════
+        def edit_train_properties():
+            """Edit train type and priority."""
+            prop_dialog = tk.Toplevel(dialog)
+            prop_dialog.title(f"⚙️ Proprietà Treno: {schedule.train.name}")
+            prop_dialog.geometry("500x350")
+            prop_dialog.transient(dialog)
+            prop_dialog.grab_set()
+            
+            prop_frame = ttk.Frame(prop_dialog, padding=15)
+            prop_frame.pack(fill=tk.BOTH, expand=True)
+            
+            ttk.Label(prop_frame, text=f"🚂 Treno: {schedule.train.name}", font=('TkDefaultFont', 11, 'bold')).pack(pady=(0, 15))
+            
+            # Type
+            type_frame = ttk.LabelFrame(prop_frame, text="🏷️ Tipo Treno", padding=10)
+            type_frame.pack(fill=tk.X, pady=5)
+            
+            type_var = tk.StringVar(value=schedule.train.train_type.value)
+            type_combo = ttk.Combobox(type_frame, textvariable=type_var, width=25, state='readonly',
+                                     values=[t.value for t in TrainType])
+            type_combo.pack(pady=5)
+            
+            # Priority
+            priority_frame = ttk.LabelFrame(prop_frame, text="🎯 Priorità", padding=10)
+            priority_frame.pack(fill=tk.X, pady=5)
+            
+            priority_var = tk.StringVar(value=str(schedule.priority))
+            priority_spin = ttk.Spinbox(priority_frame, from_=1, to=10, width=25, textvariable=priority_var)
+            priority_spin.pack(pady=5)
+            
+            def save_properties():
+                """Save train properties."""
+                try:
+                    # Update type
+                    train_type_str = type_var.get()
+                    old_type = schedule.train.train_type.value
+                    for tt in TrainType:
+                        if tt.value == train_type_str:
+                            schedule.train.train_type = tt
+                            schedule.train.update_characteristics_from_type(tt)
+                            break
+                    
+                    # Update priority
+                    schedule.priority = int(priority_var.get())
+                    
+                    # Ricalcola orari se il tipo di treno è cambiato (velocità diversa)
+                    if old_type != train_type_str:
+                        response = messagebox.askyesno(
+                            "Ricalcolare Orari?",
+                            f"Il tipo di treno è cambiato da '{old_type}' a '{train_type_str}'.\n"
+                            f"Velocità massima: {schedule.train.max_speed} km/h\n\n"
+                            "Vuoi ricalcolare gli orari con la nuova velocità?"
+                        )
+                        
+                        if response:
+                            # Ricalcola tutti gli orari
+                            from schedule import ScheduleBuilder
+                            start_time = schedule.stops[0].departure_time
+                            route = [stop.node_id for stop in schedule.stops]
+                            stop_duration = schedule.stops[1].stop_duration if len(schedule.stops) > 1 else 5
+                            
+                            # Crea nuovo schedule con orari ricalcolati
+                            new_schedule = ScheduleBuilder.create_schedule(
+                                schedule_id=schedule.schedule_id,
+                                train=schedule.train,
+                                route=route,
+                                network=self.network,
+                                start_time=start_time,
+                                stop_duration_minutes=stop_duration
+                            )
+                            
+                            if new_schedule:
+                                # Aggiorna gli orari
+                                for i, stop in enumerate(schedule.stops):
+                                    if i < len(new_schedule.stops):
+                                        stop.arrival_time = new_schedule.stops[i].arrival_time
+                                        stop.departure_time = new_schedule.stops[i].departure_time
+                                
+                                # Aggiorna la treeview
+                                for i, stop in enumerate(schedule.stops):
+                                    node_name = self.network.nodes[stop.node_id].name if stop.node_id in self.network.nodes else stop.node_id
+                                    arrival_str = stop.arrival_time.strftime('%H:%M') if stop.arrival_time else '--:--'
+                                    departure_str = stop.departure_time.strftime('%H:%M') if stop.departure_time else '--:--'
+                                    tree.item(str(i), values=(node_name, arrival_str, departure_str, 
+                                                            str(stop.stop_duration), str(stop.platform)))
+                    
+                    # Update info display
+                    info_label.config(text=f"""
+        🚂 Treno: {schedule.train.name}
+        📍 Percorso: {origin_name} → {dest_name}
+        🏷️ Tipo: {schedule.train.train_type.value}
+        ⚡ Velocità max: {schedule.train.max_speed} km/h
+        🎯 Priorità: {schedule.priority}
+        🕐 Partenza: {first_stop.departure_time.strftime('%H:%M')}
+        🏁 Arrivo: {last_stop.arrival_time.strftime('%H:%M') if last_stop.arrival_time else '--:--'}
+        """)
+                    
+                    self.modified = True
+                    self.update_all_displays()
+                    self.update_status(f"✓ Proprietà treno '{schedule.train.name}' modificate")
+                    
+                    prop_dialog.destroy()
+                    messagebox.showinfo("Salvato", f"✓ Proprietà treno modificate!\n\n"
+                                       f"Tipo: {schedule.train.train_type.value}\n"
+                                       f"Velocità: {schedule.train.max_speed} km/h\n"
+                                       f"Priorità: {schedule.priority}\n\n"
+                                       "💾 Ricorda di salvare il file: File → Salva (Ctrl+S)")
+                    
+                except Exception as e:
+                    messagebox.showerror("Errore", f"Errore nel salvataggio:\n{str(e)}")
+            
+            btn_frame = ttk.Frame(prop_frame)
+            btn_frame.pack(pady=15)
+            
+            ttk.Button(btn_frame, text="💾 Salva", command=save_properties, width=15).pack(side=tk.LEFT, padx=5)
+            ttk.Button(btn_frame, text="❌ Annulla", command=prop_dialog.destroy, width=15).pack(side=tk.LEFT, padx=5)
+        
+        # ═══════════════════════════════════════════════════════════════
+        # BUTTONS FINALI
+        # ═══════════════════════════════════════════════════════════════
         btn_frame = ttk.Frame(main_frame)
         btn_frame.pack(fill=tk.X, pady=(10, 0))
-        ttk.Button(btn_frame, text="Salva Modifiche", command=save_changes).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Annulla", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
-    
+        
+        ttk.Button(btn_frame, text="⚙️ Modifica Proprietà Treno", command=edit_train_properties, width=25).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="✅ Chiudi", command=dialog.destroy, width=15).pack(side=tk.RIGHT, padx=5)
+        
+        # Help label
+        help_label = ttk.Label(main_frame, 
+                              text="💡 Doppio click su una riga per modificare quella fermata",
+                              font=('TkDefaultFont', 9, 'italic'),
+                              foreground='gray')
+        help_label.pack(pady=5)
+
     def show_trains_context_menu(self, event):
         """Show context menu for trains."""
         # Select item under cursor
@@ -2052,7 +2287,7 @@ class RailwayGUI:
             self.trains_menu.post(event.x_root, event.y_root)
     
     def show_train_diagram(self):
-        """Show train diagram (graficoparcia) for selected train."""
+        """Show train diagram (grafico marcia) for selected train with all traffic on same line."""
         selection = self.trains_tree.selection()
         if not selection:
             messagebox.showwarning("Attenzione", "Selezionare un treno")
@@ -2073,11 +2308,57 @@ class RailwayGUI:
         
         try:
             from visualization import plot_timetable
-            plot_timetable(self.network, [schedule], 
-                          title=f"Grafico Marcia - {schedule.train.name}",
-                          show_conflicts=False)
+            from datetime import timedelta
+            
+            # Get route from selected schedule
+            route = [stop.node_id for stop in schedule.stops]
+            
+            # Get time window from selected schedule
+            first_stop = schedule.stops[0]
+            last_stop = schedule.stops[-1]
+            start_time = first_stop.departure_time
+            end_time = last_stop.arrival_time if last_stop.arrival_time else last_stop.departure_time
+            
+            # Expand time window by 2 hours before and after to show context
+            time_buffer = timedelta(hours=2)
+            window_start = start_time - time_buffer
+            window_end = end_time + time_buffer
+            
+            # Find all schedules that use the same route (same line)
+            # A schedule uses the same line if it has the same stations in the same order
+            route_set = set(route)
+            schedules_on_line = []
+            
+            for s in self.schedules:
+                s_route = [stop.node_id for stop in s.stops]
+                s_route_set = set(s_route)
+                
+                # Check if schedule is on same line:
+                # 1. Has significant overlap with route (at least 50% of stations)
+                # 2. Is in the time window
+                overlap = len(route_set & s_route_set)
+                if overlap >= len(route_set) * 0.5:  # At least 50% overlap
+                    s_first = s.stops[0]
+                    s_last = s.stops[-1]
+                    s_start = s_first.departure_time
+                    s_end = s_last.arrival_time if s_last.arrival_time else s_last.departure_time
+                    
+                    # Check if schedule is in time window
+                    if (s_start <= window_end and s_end >= window_start):
+                        schedules_on_line.append(s)
+            
+            # If no other schedules found, just show the selected one
+            if len(schedules_on_line) == 0:
+                schedules_on_line = [schedule]
+            
+            # Sort by departure time
+            schedules_on_line.sort(key=lambda s: s.stops[0].departure_time)
+            
+            plot_timetable(route, schedules_on_line, self.network,
+                          show_conflicts=True)
         except Exception as e:
-            messagebox.showerror("Errore", f"Impossibile visualizzare il grafico:\n{str(e)}")
+            import traceback
+            messagebox.showerror("Errore", f"Impossibile visualizzare il grafico:\n{str(e)}\n\n{traceback.format_exc()}")
     
     def show_metro_map(self, lines_to_show=None):
         """Show metro-style map for selected line(s).
@@ -2346,27 +2627,85 @@ class RailwayGUI:
             messagebox.showerror("Errore", f"Errore nella generazione della mappa:\n{str(e)}")
     
     def show_timetable_diagram(self):
-        """Show time-distance diagram."""
+        """Show time-distance diagram with line selection."""
         if not self.schedules:
             messagebox.showwarning("Attenzione", "Non ci sono orari da visualizzare")
             return
         
-        # Let user select a line
         if not self.lines:
             messagebox.showwarning("Attenzione", "Creare almeno una linea per visualizzare il grafico orario")
             return
         
-        # Simple selection dialog
-        line_ids = list(self.lines.keys())
-        # For now, use first line
-        line_id = line_ids[0]
-        route = self.lines[line_id].route
+        # Create line selection dialog
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Seleziona Linea per Grafico Orario")
+        dialog.geometry("400x300")
+        dialog.transient(self.root)
+        dialog.grab_set()
         
-        try:
-            plot_timetable(route, self.schedules, self.network, filename="temp_timetable.png")
-            self.update_status("Grafico orario generato")
-        except Exception as e:
-            messagebox.showerror("Errore", f"Errore nella generazione del grafico:\n{str(e)}")
+        ttk.Label(dialog, text="Seleziona una linea per visualizzare il grafico orario:", 
+                 font=('TkDefaultFont', 10, 'bold')).pack(pady=10, padx=10)
+        
+        # Create listbox with lines
+        list_frame = ttk.Frame(dialog)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        listbox = tk.Listbox(list_frame, height=10)
+        scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=listbox.yview)
+        listbox.configure(yscrollcommand=scrollbar.set)
+        
+        # Populate listbox with lines
+        line_data = []
+        for line_id, line in self.lines.items():
+            display_text = f"{line.name} ({len(line.route)} stazioni)"
+            listbox.insert(tk.END, display_text)
+            line_data.append((line_id, line))
+        
+        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Select first line by default
+        if line_data:
+            listbox.selection_set(0)
+        
+        def show_diagram():
+            """Show diagram for selected line."""
+            selection = listbox.curselection()
+            if not selection:
+                messagebox.showwarning("Attenzione", "Selezionare una linea")
+                return
+            
+            line_id, line = line_data[selection[0]]
+            
+            # Filter schedules that use this line
+            line_schedules = []
+            for schedule in self.schedules:
+                # Check if schedule route matches line route (at least partially)
+                schedule_nodes = [stop.node_id for stop in schedule.stops]
+                if any(node in line.route for node in schedule_nodes):
+                    line_schedules.append(schedule)
+            
+            if not line_schedules:
+                messagebox.showinfo("Informazione", 
+                                   f"Nessun treno trovato sulla linea '{line.name}'")
+                dialog.destroy()
+                return
+            
+            try:
+                from visualization import plot_timetable
+                # Use line route for the diagram
+                plot_timetable(line.route, line_schedules, self.network,
+                              show_conflicts=True)
+                self.update_status(f"Grafico orario generato per linea '{line.name}' ({len(line_schedules)} treni)")
+                dialog.destroy()
+            except Exception as e:
+                messagebox.showerror("Errore", f"Errore nella generazione del grafico:\n{str(e)}")
+        
+        # Buttons
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(pady=10)
+        ttk.Button(btn_frame, text="Visualizza Grafico", command=show_diagram).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Annulla", command=dialog.destroy).pack(side=tk.LEFT, padx=5)
     
     def show_network_stats(self):
         """Show network statistics dialog."""
@@ -2854,12 +3193,188 @@ Treni schedulati: {len(self.schedules)}
     # UPDATE DISPLAYS
     # ========================================================================
     
+    def auto_assign_all_platforms(self):
+        """Automatically assign platforms to all trains."""
+        from schedule import auto_assign_platforms
+        
+        if not self.schedules:
+            return
+        
+        issues = auto_assign_platforms(self.schedules, self.network)
+        
+        if issues:
+            # Show issues to user
+            issue_msg = "Alcuni treni hanno conflitti di binario:\n\n"
+            for schedule_id, issue_list in issues.items():
+                issue_msg += f"• {schedule_id}:\n"
+                for issue in issue_list:
+                    issue_msg += f"  - {issue}\n"
+            messagebox.showwarning("Conflitti Binario", issue_msg)
+    
+    def show_platform_manager(self):
+        """Show platform assignment manager dialog."""
+        if not self.schedules:
+            messagebox.showinfo("Info", "Nessun treno da gestire")
+            return
+        
+        dialog = tk.Toplevel(self.root)
+        dialog.title("Gestione Assegnazione Binari")
+        dialog.geometry("900x600")
+        dialog.transient(self.root)
+        
+        # Info
+        info_frame = ttk.LabelFrame(dialog, text="ℹ️ Informazioni", padding=10)
+        info_frame.pack(fill=tk.X, padx=10, pady=5)
+        ttk.Label(info_frame, text="Gestisci l'assegnazione dei binari per ogni treno in ogni stazione.\nI conflitti sono evidenziati in rosso.",
+                 font=('TkDefaultFont', 9, 'italic')).pack()
+        
+        # Buttons
+        btn_frame = ttk.Frame(dialog)
+        btn_frame.pack(fill=tk.X, padx=10, pady=5)
+        ttk.Button(btn_frame, text="🔄 Riassegna Automaticamente", 
+                  command=lambda: [self.auto_assign_all_platforms(), self.update_platform_display(tree, conflict_label)]).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="✓ Chiudi", command=dialog.destroy).pack(side=tk.RIGHT, padx=5)
+        
+        # Conflict status
+        conflict_label = ttk.Label(dialog, text="", font=('TkDefaultFont', 10, 'bold'))
+        conflict_label.pack(fill=tk.X, padx=10)
+        
+        # Tree view
+        tree_frame = ttk.Frame(dialog)
+        tree_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        columns = ('train', 'station', 'arrival', 'departure', 'platform')
+        tree = ttk.Treeview(tree_frame, columns=columns, show='headings', height=20)
+        tree.heading('train', text='Treno')
+        tree.heading('station', text='Stazione')
+        tree.heading('arrival', text='Arrivo')
+        tree.heading('departure', text='Partenza')
+        tree.heading('platform', text='Binario')
+        
+        tree.column('train', width=150)
+        tree.column('station', width=200)
+        tree.column('arrival', width=100)
+        tree.column('departure', width=100)
+        tree.column('platform', width=80)
+        
+        scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL, command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        
+        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        def on_double_click(event):
+            selection = tree.selection()
+            if not selection:
+                return
+            
+            item = tree.item(selection[0])
+            values = item['values']
+            schedule_id = item['tags'][0] if item['tags'] else None
+            stop_index = int(item['tags'][1]) if len(item['tags']) > 1 else None
+            
+            if not schedule_id or stop_index is None:
+                return
+            
+            # Find schedule and stop
+            schedule = next((s for s in self.schedules if s.schedule_id == schedule_id), None)
+            if not schedule or stop_index >= len(schedule.stops):
+                return
+            
+            stop = schedule.stops[stop_index]
+            node = self.network.get_node(stop.node_id)
+            
+            if not node:
+                return
+            
+            # Ask for new platform
+            new_platform = simpledialog.askinteger(
+                "Modifica Binario",
+                f"Stazione: {node.name}\nTreno: {schedule.train.name}\n\nInserisci nuovo binario (1-{node.platforms}):",
+                minvalue=1,
+                maxvalue=node.platforms,
+                initialvalue=stop.platform or 1
+            )
+            
+            if new_platform:
+                stop.platform = new_platform
+                self.modified = True
+                self.update_platform_display(tree, conflict_label)
+        
+        tree.bind('<Double-Button-1>', on_double_click)
+        
+        self.update_platform_display(tree, conflict_label)
+    
+    def update_platform_display(self, tree, conflict_label):
+        """Update platform assignment display."""
+        from schedule import check_platform_conflicts
+        
+        tree.delete(*tree.get_children())
+        
+        # Add all stops
+        for schedule in sorted(self.schedules, key=lambda s: s.stops[0].departure_time if s.stops[0].departure_time else datetime.max):
+            for idx, stop in enumerate(schedule.stops):
+                node = self.network.get_node(stop.node_id)
+                if not node:
+                    continue
+                
+                arrival = stop.arrival_time.strftime('%H:%M') if stop.arrival_time else '---'
+                departure = stop.departure_time.strftime('%H:%M') if stop.departure_time else '---'
+                platform = str(stop.platform) if stop.platform else '-'
+                
+                tree.insert('', tk.END,
+                           values=(schedule.train.name, node.name, arrival, departure, platform),
+                           tags=(schedule.schedule_id, str(idx)))
+        
+        # Check conflicts
+        conflicts = check_platform_conflicts(self.schedules, self.network)
+        
+        if conflicts:
+            conflict_label.config(text=f"⚠️ {len(conflicts)} conflitti rilevati!", foreground='red')
+            
+            # Highlight conflicts
+            for item in tree.get_children():
+                values = tree.item(item)['values']
+                tags = tree.item(item)['tags']
+                
+                if not tags:
+                    continue
+                
+                schedule_id = tags[0]
+                stop_index = int(tags[1])
+                
+                # Check if this stop is in conflict
+                schedule = next((s for s in self.schedules if s.schedule_id == schedule_id), None)
+                if not schedule or stop_index >= len(schedule.stops):
+                    continue
+                
+                stop = schedule.stops[stop_index]
+                
+                for conflict in conflicts:
+                    if conflict['node_id'] == stop.node_id and conflict['platform'] == stop.platform:
+                        if conflict['train1'] == schedule.train.name or conflict['train2'] == schedule.train.name:
+                            tree.item(item, tags=tags + ('conflict',))
+                            # Color red for conflicts
+                            tree.tag_configure('conflict', background='#ffcccc')
+        else:
+            conflict_label.config(text="✓ Nessun conflitto di binario", foreground='green')
+    
     def update_all_displays(self):
         """Update all display elements."""
         self.update_stations_list()
         self.update_connections_list()
         self.update_lines_list()
         self.update_trains_list()
+        
+        # Aggiorna anche il grafico se c'è un treno selezionato
+        selection = self.trains_tree.selection()
+        if selection:
+            item = self.trains_tree.item(selection[0])
+            schedule_id = item['text']
+            for s in self.schedules:
+                if s.schedule_id == schedule_id:
+                    self._draw_train_diagram(s)
+                    break
     
     def update_stations_list(self):
         """Update stations tree view."""
@@ -2899,19 +3414,92 @@ Treni schedulati: {len(self.schedules)}
                                          len(line.route)))
     
     def update_trains_list(self):
-        """Update trains/schedules tree view."""
+        """Update trains/schedules tree view with optional line filter."""
         self.trains_tree.delete(*self.trains_tree.get_children())
         
+        # Update filter combo with available lines
+        if hasattr(self, 'train_filter_combo'):
+            line_names = ["Tutte le linee"] + [f"{lid}: {line.name}" for lid, line in self.lines.items()]
+            self.train_filter_combo['values'] = line_names
+        
+        # Get selected filter
+        selected_filter = self.train_filter_var.get() if hasattr(self, 'train_filter_var') else "Tutte le linee"
+        
         for schedule in self.schedules:
+            # Apply line filter
+            if selected_filter != "Tutte le linee":
+                # Extract line ID from filter (format: "LINE_ID: Line Name")
+                filter_line_id = selected_filter.split(':')[0].strip()
+                
+                # Check if schedule belongs to this line (including partial routes)
+                schedule_route = [stop.node_id for stop in schedule.stops]
+                line_matches = False
+                
+                for line_id, line in self.lines.items():
+                    if line_id == filter_line_id:
+                        # Check if schedule route is exact match or contiguous subset
+                        if (schedule_route == line.route or 
+                            schedule_route == list(reversed(line.route))):
+                            line_matches = True
+                            break
+                        
+                        # Check if schedule is a contiguous portion of the line
+                        line_route_str = ','.join(line.route)
+                        schedule_route_str = ','.join(schedule_route)
+                        schedule_route_reversed_str = ','.join(reversed(schedule_route))
+                        
+                        if (schedule_route_str in line_route_str or 
+                            schedule_route_reversed_str in line_route_str):
+                            line_matches = True
+                            break
+                
+                if not line_matches:
+                    continue
+            
             dep = schedule.get_departure_time()
             arr = schedule.get_arrival_time()
+            
+            # Get station names instead of IDs
+            origin_name = schedule.origin
+            destination_name = schedule.destination
+            
+            if schedule.origin in self.network.nodes:
+                origin_name = self.network.nodes[schedule.origin].name
+            
+            if schedule.destination in self.network.nodes:
+                destination_name = self.network.nodes[schedule.destination].name
+            
+            # Find which line this schedule belongs to
+            # A train belongs to a line if its route is a SUBSET (portion) of the line route
+            line_name = "-"
+            schedule_route = [stop.node_id for stop in schedule.stops]
+            
+            for line_id, line in self.lines.items():
+                # Check if schedule route is exact match (forward or reverse)
+                if (schedule_route == line.route or 
+                    schedule_route == list(reversed(line.route))):
+                    line_name = line.name
+                    break
+                
+                # Check if schedule route is a CONTIGUOUS SUBSET of the line route
+                # This handles trains that travel only PART of the line
+                line_route_str = ','.join(line.route)
+                schedule_route_str = ','.join(schedule_route)
+                schedule_route_reversed_str = ','.join(reversed(schedule_route))
+                
+                # Check if schedule is a substring (contiguous portion) of line route
+                if (schedule_route_str in line_route_str or 
+                    schedule_route_reversed_str in line_route_str):
+                    line_name = line.name
+                    break
             
             self.trains_tree.insert('', tk.END,
                                    text=schedule.schedule_id,
                                    values=(schedule.train.name,
                                           schedule.train.train_type.name,
-                                          schedule.origin,
-                                          schedule.destination,
+                                          line_name,
+                                          origin_name,
+                                          destination_name,
                                           dep.strftime('%H:%M') if dep else '---',
                                           arr.strftime('%H:%M') if arr else '---'))
     
@@ -2943,6 +3531,9 @@ Treni schedulati: {len(self.schedules)}
         """Handle schedule selection."""
         selection = self.trains_tree.selection()
         if not selection:
+            # Clear details when nothing is selected
+            self.schedule_details_text.delete('1.0', tk.END)
+            self._clear_diagram()
             return
         
         item = self.trains_tree.item(selection[0])
@@ -2955,9 +3546,19 @@ Treni schedulati: {len(self.schedules)}
                 break
         
         if schedule:
+            # Get station names instead of IDs
+            origin_name = schedule.origin
+            destination_name = schedule.destination
+            
+            if schedule.origin in self.network.nodes:
+                origin_name = self.network.nodes[schedule.origin].name
+            
+            if schedule.destination in self.network.nodes:
+                destination_name = self.network.nodes[schedule.destination].name
+            
             details = f"Orario: {schedule.schedule_id}\n"
             details += f"Treno: {schedule.train.name} ({schedule.train.train_type.name})\n"
-            details += f"Percorso: {schedule.origin} → {schedule.destination}\n"
+            details += f"Percorso: {origin_name} → {destination_name}\n"
             details += f"Priorità: {schedule.priority}\n"
             details += f"\nFermate:\n"
             details += "-" * 60 + "\n"
@@ -2973,6 +3574,125 @@ Treni schedulati: {len(self.schedules)}
             
             self.schedule_details_text.delete('1.0', tk.END)
             self.schedule_details_text.insert('1.0', details)
+            
+            # Draw diagram in the right panel
+            self._draw_train_diagram(schedule)
+    
+    def _clear_diagram(self):
+        """Clear the diagram canvas."""
+        if self.diagram_canvas:
+            try:
+                self.diagram_canvas.destroy()
+            except:
+                pass
+            self.diagram_canvas = None
+        
+        # Clear all children of diagram frame
+        for widget in self.diagram_frame_container.winfo_children():
+            widget.destroy()
+    
+    def _draw_train_diagram(self, schedule):
+        """Draw train diagram in the right panel."""
+        try:
+            import tempfile
+            import os
+            from PIL import Image, ImageTk
+            from datetime import timedelta
+            
+            # Clear previous diagram
+            self._clear_diagram()
+            
+            # Find all trains on the same line within time window
+            schedules_on_line = self._find_schedules_on_same_line(schedule)
+            
+            if not schedules_on_line:
+                # If no schedules found, just show the selected one
+                schedules_on_line = [schedule]
+            
+            # Extract route from the selected schedule
+            route = [stop.node_id for stop in schedule.stops]
+            
+            # Use visualization module to plot to a temporary file
+            from visualization import plot_timetable
+            
+            # Create temporary file
+            temp_file = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+            temp_file.close()
+            
+            # Generate plot and save to file
+            plot_timetable(route, schedules_on_line, self.network, 
+                          filename=temp_file.name,
+                          figsize=(6, 4),
+                          show_conflicts=True)
+            
+            # Load image and display in tkinter
+            img = Image.open(temp_file.name)
+            
+            # Resize to fit panel if needed
+            max_width = 500
+            max_height = 350
+            img.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
+            
+            photo = ImageTk.PhotoImage(img)
+            
+            # Create label to show image
+            img_label = tk.Label(self.diagram_frame_container, image=photo)
+            img_label.image = photo  # Keep a reference to prevent garbage collection
+            img_label.pack(fill=tk.BOTH, expand=True)
+            
+            # Store label to clear later
+            self.diagram_canvas = img_label
+            
+            # Clean up temporary file
+            try:
+                os.unlink(temp_file.name)
+            except:
+                pass
+            
+        except Exception as e:
+            # If there's an error, show a message in the diagram area
+            error_label = ttk.Label(self.diagram_frame_container, 
+                                   text=f"Impossibile generare il grafico:\n{str(e)}",
+                                   justify=tk.CENTER)
+            error_label.pack(expand=True)
+            print(f"Errore nel disegno del grafico: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _find_schedules_on_same_line(self, selected_schedule):
+        """Find all schedules on the same line as the selected schedule."""
+        # Get route of selected schedule
+        selected_route = set([stop.node_id for stop in selected_schedule.stops])
+        
+        # Get time window (±2 hours from selected schedule)
+        if selected_schedule.stops:
+            first_stop = selected_schedule.stops[0]
+            departure_time = first_stop.departure_time if first_stop.departure_time else first_stop.arrival_time
+            
+            if departure_time:
+                from datetime import timedelta
+                time_start = departure_time - timedelta(hours=2)
+                time_end = departure_time + timedelta(hours=4)
+                
+                # Find schedules with overlapping routes and time window
+                schedules_on_line = []
+                for s in self.schedules:
+                    s_route = set([stop.node_id for stop in s.stops])
+                    
+                    # Check if routes overlap (at least 50% of stops in common)
+                    overlap = len(selected_route & s_route)
+                    if overlap >= len(selected_route) * 0.5:
+                        # Check time window
+                        if s.stops:
+                            s_first_stop = s.stops[0]
+                            s_departure = s_first_stop.departure_time if s_first_stop.departure_time else s_first_stop.arrival_time
+                            
+                            if s_departure and time_start <= s_departure <= time_end:
+                                schedules_on_line.append(s)
+                
+                return sorted(schedules_on_line, key=lambda x: x.stops[0].departure_time or x.stops[0].arrival_time)
+        
+        return [selected_schedule]
 
 
 class AddStationDialog:

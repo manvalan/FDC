@@ -222,19 +222,28 @@ class Train:
         if s_cruise < 0:
             # Not enough distance to reach max speed
             # Calculate peak speed reached
-            # s = (v_peak² - v_start²)/(2*a) + (v_peak² - v_end²)/(2*d)
-            # Solve for v_peak
-            numerator = (self.acceleration * self.deceleration * distance_m + 
-                        0.5 * self.deceleration * v_start_ms * v_start_ms + 
-                        0.5 * self.acceleration * v_end_ms * v_end_ms)
-            denominator = (self.acceleration + self.deceleration) * 0.5
-            v_peak_ms = (numerator / denominator) ** 0.5
+            # s_total = (v_peak² - v_start²)/(2*a) + (v_peak² - v_end²)/(2*d)
+            # Solving for v_peak:
+            # v_peak² = (s_total + v_start²/(2*a) + v_end²/(2*d)) / (1/(2*a) + 1/(2*d))
             
-            # Limit to max speed
-            v_peak_ms = min(v_peak_ms, v_max_ms)
+            numerator = (distance_m + 
+                        (v_start_ms * v_start_ms) / (2 * self.acceleration) + 
+                        (v_end_ms * v_end_ms) / (2 * self.deceleration))
+            denominator = (1.0 / (2 * self.acceleration) + 1.0 / (2 * self.deceleration))
             
-            t_accel = (v_peak_ms - v_start_ms) / self.acceleration
-            t_brake = (v_peak_ms - v_end_ms) / self.deceleration
+            v_peak_squared = numerator / denominator
+            
+            # Check if solution is valid
+            if v_peak_squared > 0:
+                v_peak_ms = v_peak_squared ** 0.5
+                # Limit to max speed
+                v_peak_ms = min(v_peak_ms, v_max_ms)
+            else:
+                # Fallback: use simple average
+                v_peak_ms = (v_start_ms + v_end_ms) / 2
+            
+            t_accel = (v_peak_ms - v_start_ms) / self.acceleration if v_peak_ms > v_start_ms else 0
+            t_brake = (v_peak_ms - v_end_ms) / self.deceleration if v_peak_ms > v_end_ms else 0
             t_cruise = 0
             s_cruise = 0
         else:

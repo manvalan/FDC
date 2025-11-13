@@ -220,28 +220,33 @@ def plot_timetable(
     
     if filename:
         plt.savefig(filename, dpi=300, bbox_inches='tight', pad_inches=0.1)
-    plt.show()
+        plt.close()  # Close the figure to avoid opening a window
+    else:
+        plt.show()  # Only show if no filename (for standalone use)
 
 
 def _detect_track_conflicts(schedules: List[TrainSchedule], route: List[str], 
                             km_map: Dict[str, float], network) -> List[Dict]:
-    """Detect conflicts where two trains overlap on single-track sections.
+    """Detect conflicts where two trains overlap on single-track sections or same platform.
     
     Returns:
         List of conflict dicts with 'time', 'km', 'trains' keys
     """
     conflicts = []
     
-    # Check each consecutive segment
+    # 1. Check track conflicts (single-track sections only)
     for i in range(len(route) - 1):
         node_a, node_b = route[i], route[i+1]
         
-        # Check if this is a single-track section (capacity <= 1)
+        # Check if this is a single-track section
+        # A section is single-track ONLY if track_type is explicitly SINGLE
         is_single_track = False
         for e in network.edges:
             if ((e.from_node == node_a and e.to_node == node_b) or
                 (e.bidirectional and e.from_node == node_b and e.to_node == node_a)):
-                if e.track_type.value == 'single' or e.capacity <= 1:
+                # Only consider it single-track if explicitly set as SINGLE
+                # DOUBLE, HIGH_SPEED, etc. are NOT single-track
+                if e.track_type.value == 'single':
                     is_single_track = True
                 break
         
@@ -283,6 +288,59 @@ def _detect_track_conflicts(schedules: List[TrainSchedule], route: List[str],
                         'time': conflict_time,
                         'km': conflict_km,
                         'trains': f"{w1['train']} vs {w2['train']}"
+                    })
+    
+    # 2. Check platform conflicts at stations
+    # Build platform usage: {node_id: {platform: [(train_name, arrival, departure)]}}
+    platform_usage = {}
+    
+    for sched in schedules:
+        for stop in sched.stops:
+            if not stop.platform or stop.node_id not in route:
+                continue
+            
+            arrival = stop.arrival_time or stop.departure_time
+            departure = stop.departure_time or stop.arrival_time
+            
+            if not arrival or not departure:
+                continue
+            
+            node_id = stop.node_id
+            platform = stop.platform
+            
+            if node_id not in platform_usage:
+                platform_usage[node_id] = {}
+            if platform not in platform_usage[node_id]:
+                platform_usage[node_id][platform] = []
+            
+            platform_usage[node_id][platform].append({
+                'train': sched.train.name,
+                'arrival': arrival,
+                'departure': departure
+            })
+    
+    # Check for platform overlaps
+    for node_id, platforms in platform_usage.items():
+        if node_id not in km_map:
+            continue
+        
+        for platform, usages in platforms.items():
+            # Sort by arrival
+            usages.sort(key=lambda x: x['arrival'])
+            
+            # Check consecutive pairs
+            for i in range(len(usages) - 1):
+                u1 = usages[i]
+                u2 = usages[i + 1]
+                
+                # Check if time windows overlap on same platform
+                if u1['departure'] > u2['arrival']:
+                    conflict_time = mdates.date2num(max(u1['arrival'], u2['arrival']))
+                    conflict_km = km_map[node_id]
+                    conflicts.append({
+                        'time': conflict_time,
+                        'km': conflict_km,
+                        'trains': f"{u1['train']} vs {u2['train']} (Platform {platform})"
                     })
     
     return conflicts
