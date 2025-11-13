@@ -1,0 +1,49 @@
+# C++ Build artifacts
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Qt
+*.pro.user
+*.autosave
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+*.log
+
+# Documentation
+docs/html/
+docs/latex/
+
+# Package managers
+vcpkg_installed/
+conan/
