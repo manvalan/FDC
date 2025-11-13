@@ -46,4 +46,31 @@ std::string Edge::get_other_endpoint(const std::string& node_id) const {
     return "";
 }
 
+// JSON serialization
+void to_json(nlohmann::json& j, const Edge& edge) {
+    j = nlohmann::json{
+        {"from_node", edge.get_from_node()},
+        {"to_node", edge.get_to_node()},
+        {"distance", edge.get_distance()},
+        {"track_type", track_type_to_string(edge.get_track_type())},
+        {"max_speed", edge.get_max_speed()},
+        {"capacity", edge.get_capacity()},
+        {"bidirectional", edge.is_bidirectional()}
+    };
+}
+
+void from_json(const nlohmann::json& j, Edge& edge) {
+    std::string from_node = j.at("from_node").get<std::string>();
+    std::string to_node = j.at("to_node").get<std::string>();
+    double distance = j.at("distance").get<double>();
+    std::string track_type_str = j.at("track_type").get<std::string>();
+    double max_speed = j.at("max_speed").get<double>();
+    int capacity = j.at("capacity").get<int>();
+    bool bidirectional = j.at("bidirectional").get<bool>();
+    
+    TrackType track_type = string_to_track_type(track_type_str);
+    
+    edge = Edge(from_node, to_node, distance, track_type, max_speed, capacity, bidirectional);
+}
+
 } // namespace fdc

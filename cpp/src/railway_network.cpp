@@ -105,10 +105,10 @@ bool RailwayNetwork::add_edge(const Edge& edge) {
     
     // If bidirectional, add reverse edge
     if (edge.is_bidirectional()) {
-        // Create reverse edge
+        // Create reverse edge (correct parameter order: from, to, distance, track_type, max_speed, capacity)
         Edge reverse_edge(edge.get_to_node(), edge.get_from_node(),
-                         edge.get_distance(), edge.get_max_speed(),
-                         edge.get_track_type(), edge.get_capacity());
+                         edge.get_distance(), edge.get_track_type(),
+                         edge.get_max_speed(), edge.get_capacity());
         reverse_edge.set_bidirectional(true);
         
         auto reverse_edge_ptr = std::make_shared<Edge>(reverse_edge);

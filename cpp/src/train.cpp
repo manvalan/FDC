@@ -102,4 +102,29 @@ Train Train::create_by_type(const std::string& id,
     return train;
 }
 
+// JSON serialization
+void to_json(nlohmann::json& j, const Train& train) {
+    j = nlohmann::json{
+        {"id", train.get_id()},
+        {"name", train.get_name()},
+        {"type", train_type_to_string(train.get_type())},
+        {"max_speed", train.get_max_speed()},
+        {"acceleration", train.get_acceleration()},
+        {"deceleration", train.get_deceleration()}
+    };
+}
+
+void from_json(const nlohmann::json& j, Train& train) {
+    std::string id = j.at("id").get<std::string>();
+    std::string name = j.at("name").get<std::string>();
+    std::string type_str = j.at("type").get<std::string>();
+    double max_speed = j.at("max_speed").get<double>();
+    double acceleration = j.at("acceleration").get<double>();
+    double deceleration = j.at("deceleration").get<double>();
+    
+    TrainType type = string_to_train_type(type_str);
+    
+    train = Train(id, name, type, max_speed, acceleration, deceleration);
+}
+
 } // namespace fdc

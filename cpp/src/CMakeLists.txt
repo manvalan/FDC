@@ -5,6 +5,7 @@ set(FDC_CORE_SOURCES
     train.cpp
     railway_network.cpp
     schedule.cpp
+    serialization.cpp
     # Additional sources will be added here
 )
 

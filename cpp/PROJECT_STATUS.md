@@ -1,6 +1,6 @@
 # 🚀 FDC C++ - Progetto di Riscrittura
 
-## 📊 Stato Attuale: FASE 3 COMPLETATA
+## 📊 Stato Attuale: FASE 4 COMPLETATA
 
 Ho iniziato la riscrittura completa del progetto FDC da Python a C++. Ecco cosa è stato fatto finora:
 
@@ -18,23 +18,26 @@ cpp/
 │   ├── node_type.hpp      ✅ Enum NodeType con conversioni
 │   ├── track_type.hpp     ✅ Enum TrackType con conversioni
 │   ├── train_type.hpp     ✅ Enum TrainType con conversioni
-│   ├── node.hpp           ✅ Classe Node (stazioni)
-│   ├── edge.hpp           ✅ Classe Edge (binari)
-│   ├── train.hpp          ✅ Classe Train (treni)
+│   ├── node.hpp           ✅ Classe Node (stazioni) + JSON
+│   ├── edge.hpp           ✅ Classe Edge (binari) + JSON
+│   ├── train.hpp          ✅ Classe Train (treni) + JSON
 │   ├── railway_network.hpp ✅ Classe RailwayNetwork (grafo)
-│   └── schedule.hpp       ✅ Classi Scheduling (orari e fermate)
+│   ├── schedule.hpp       ✅ Classi Scheduling (orari e fermate) + JSON
+│   └── serialization.hpp  ✅ JSON Serialization/File I/O
 ├── src/                    ✅ Implementazioni (.cpp)
 │   ├── CMakeLists.txt     ✅ Build della libreria core
 │   ├── node.cpp           ✅ Implementazione Node
 │   ├── edge.cpp           ✅ Implementazione Edge
 │   ├── train.cpp          ✅ Implementazione Train
 │   ├── railway_network.cpp ✅ Implementazione RailwayNetwork
-│   └── schedule.cpp       ✅ Implementazione Scheduling System
+│   ├── schedule.cpp       ✅ Implementazione Scheduling System
+│   └── serialization.cpp  ✅ JSON Export/Import Network & Schedules
 ├── examples/               ✅ Esempi di utilizzo
 │   ├── CMakeLists.txt     ✅ Build esempi
 │   ├── basic_example.cpp  ✅ Esempio completo funzionante
 │   ├── network_example.cpp ✅ Esempio rete e pathfinding
-│   └── scheduling_demo.cpp ✅ Esempio scheduling completo
+│   ├── scheduling_demo.cpp ✅ Esempio scheduling completo
+│   └── json_demo.cpp      ✅ Esempio JSON export/import completo
 └── tests/                  ⏳ (directory pronta, tests da creare)
 ```
 
@@ -345,15 +348,204 @@ std::vector<TrainSchedule> get_schedules_in_timerange(start, end)
 
 ---
 
-## 🚧 DA FARE (Prossime Fasi)
-- [ ] Ricalcolo orari automatico
+## ✅ COMPLETATO (Fase 4 - JSON Serialization/Deserialization)
 
-### Fase 4 - Persistenza
-- [ ] Serializzazione JSON con nlohmann/json
-- [ ] Export/Import rete completa
-- [ ] Export/Import schedules
-- [ ] Formato compatibile con Python
-- [ ] Database MySQL (opzionale)
+### 1. **Serializzazione JSON per Tutte le Classi**
+
+#### ✅ `Node` JSON Serialization
+```cpp
+void to_json(nlohmann::json& j, const Node& node)
+void from_json(const nlohmann::json& j, Node& node)
+```
+
+**Formato JSON:**
+```json
+{
+  "id": "MI",
+  "name": "Milano Centrale",
+  "type": "STATION",
+  "latitude": 45.4869,
+  "longitude": 9.2042,
+  "capacity": 100,
+  "platform_count": 24
+}
+```
+
+#### ✅ `Edge` JSON Serialization
+```cpp
+void to_json(nlohmann::json& j, const Edge& edge)
+void from_json(const nlohmann::json& j, Edge& edge)
+```
+
+**Formato JSON:**
+```json
+{
+  "from_node": "MI",
+  "to_node": "BO",
+  "distance": 218.0,
+  "track_type": "HIGH_SPEED",
+  "max_speed": 300.0,
+  "capacity": 2,
+  "bidirectional": true
+}
+```
+
+#### ✅ `Train` JSON Serialization
+```cpp
+void to_json(nlohmann::json& j, const Train& train)
+void from_json(const nlohmann::json& j, Train& train)
+```
+
+**Formato JSON:**
+```json
+{
+  "id": "FR9612",
+  "name": "Frecciarossa 1000",
+  "type": "HIGH_SPEED",
+  "max_speed": 300.0,
+  "acceleration": 0.6,
+  "deceleration": 0.8
+}
+```
+
+#### ✅ `ScheduleStop` JSON Serialization
+```cpp
+void to_json(nlohmann::json& j, const ScheduleStop& stop)
+void from_json(const nlohmann::json& j, ScheduleStop& stop)
+```
+
+**Formato JSON:**
+```json
+{
+  "node_id": "BO",
+  "arrival": "2024-01-15T08:45:00",
+  "departure": "2024-01-15T08:50:00",
+  "platform": 2,
+  "is_stop": true
+}
+```
+
+**Features:**
+- ✅ Orari in formato ISO 8601 (YYYY-MM-DDTHH:MM:SS)
+- ✅ Platform opzionale (null se non assegnato)
+- ✅ Conversione automatica time_point ↔ string
+
+#### ✅ `TrainSchedule` JSON Serialization
+```cpp
+void to_json(nlohmann::json& j, const TrainSchedule& schedule)
+std::shared_ptr<TrainSchedule> train_schedule_from_json(
+    const nlohmann::json& j, 
+    std::shared_ptr<RailwayNetwork> network)
+```
+
+**Formato JSON:**
+```json
+{
+  "train_id": "FR9612",
+  "schedule_id": "SCH_FR9612_001",
+  "stops": [
+    { "node_id": "MI", "arrival": "...", "departure": "..." },
+    { "node_id": "BO", "arrival": "...", "departure": "..." }
+  ]
+}
+```
+
+### 2. **RailwayNetwork Serialization**
+
+**Header:** `include/serialization.hpp`
+**Implementation:** `src/serialization.cpp`
+
+#### ✅ Funzioni Export/Import Complete
+
+```cpp
+// Serializzazione completa network
+nlohmann::json railway_network_to_json(const RailwayNetwork& network)
+std::shared_ptr<RailwayNetwork> railway_network_from_json(const nlohmann::json& j)
+
+// File I/O Network
+void save_network_to_file(const RailwayNetwork& network, const std::string& filename)
+std::shared_ptr<RailwayNetwork> load_network_from_file(const std::string& filename)
+
+// File I/O Schedules
+void save_schedules_to_file(const std::vector<std::shared_ptr<TrainSchedule>>& schedules,
+                            const std::string& filename)
+std::vector<std::shared_ptr<TrainSchedule>> load_schedules_from_file(
+    const std::string& filename,
+    std::shared_ptr<RailwayNetwork> network)
+```
+
+**Formato Network JSON:**
+```json
+{
+  "metadata": {
+    "num_nodes": 4,
+    "num_edges": 3,
+    "total_track_length": 573.0
+  },
+  "nodes": [ {...}, {...}, {...} ],
+  "edges": [ {...}, {...}, {...} ]
+}
+```
+
+**Features implementate:**
+- ✅ Export/Import completo network (nodi + edges)
+- ✅ Export/Import schedules (array JSON)
+- ✅ Metadata automatico (statistiche rete)
+- ✅ Pretty-print JSON (indentazione 2 spazi)
+- ✅ Gestione errori robusta (try/catch)
+- ✅ Formato compatibile con versione Python
+
+### 3. **Esempio Completo: json_demo.cpp**
+
+**Fasi dimostrate:**
+
+1. **Creazione Rete** (4 stazioni italiane + 3 connessioni AV)
+2. **Creazione Treni** (Frecciarossa 1000 + InterCity)
+3. **Creazione Orari** (2 schedules con fermate multiple)
+4. **Export JSON** (salva network + schedules su file)
+5. **Import JSON** (ricarica tutto da file)
+6. **Verifica Integrità** (confronta dati originali vs caricati)
+7. **Riepilogo** (statistiche complete)
+
+**File generati:**
+- `demo_network.json` - Rete completa
+- `demo_schedules.json` - Array di schedules
+
+**Output esempio:**
+```
+✅ FASE 4: Export to JSON
+   ✓ Rete salvata in: demo_network.json
+   ✓ Orari salvati in: demo_schedules.json
+
+✅ FASE 5: Import from JSON
+   ✓ Rete caricata da: demo_network.json
+   • Stazioni: 4
+   • Connessioni: 3
+   ✓ Orari caricati da: demo_schedules.json
+   • Numero schedules: 2
+
+✅ FASE 6: Verifica Integrità
+   ✓ Numero nodi: OK
+   ✓ Numero connessioni: OK
+   ✓ Lunghezza rete: OK
+   ✓ Numero orari: OK
+
+🎉 TEST COMPLETATO CON SUCCESSO!
+   ✅ Tutti i dati serializzati e deserializzati correttamente!
+   ✅ Export/Import JSON funziona perfettamente!
+   ✅ Formato compatibile con versione Python!
+```
+
+**Linee di codice:**
+- `serialization.hpp` (~80 LOC)
+- `serialization.cpp` (~160 LOC)
+- `json_demo.cpp` (~280 LOC)
+- Aggiunte serializzazione in classi esistenti (~120 LOC)
+- **Totale Fase 4: ~640 LOC**
+
+---
+
+## 🚧 DA FARE (Prossime Fasi)
 
 ### Fase 5 - GUI Qt
 - [ ] Finestra principale con tab
@@ -363,7 +555,18 @@ std::vector<TrainSchedule> get_schedules_in_timerange(start, end)
 - [ ] Menu e toolbar
 - [ ] Dialogs modifica CRUD
 
-### Fase 6 - Visualizzazioni
+### Fase 5 - GUI Qt6
+- [ ] Finestra principale con tab
+- [ ] Tab Rete Ferroviaria (lista stazioni/connessioni)
+- [ ] Tab Linee (definizione percorsi)
+- [ ] Tab Treni e Orari (gestione schedules)
+- [ ] Menu (File: New/Open/Save, Visualizza, Database)
+- [ ] Toolbar (azioni rapide: Stazione/Treno/Linea)
+- [ ] Dialogs modifica CRUD (add/edit/delete)
+- [ ] Integrazione load/save JSON
+- [ ] Messaggi di conferma e validazione
+
+### Fase 6 - Visualizzazioni Qt
 - [ ] Mappa rete con Qt Charts/QPainter
 - [ ] Grafico tempo-distanza (timetable)
 - [ ] Evidenziazione conflitti
@@ -388,11 +591,12 @@ std::vector<TrainSchedule> get_schedules_in_timerange(start, end)
 | Train | ~120 | ~130 | ✅ 100% |
 | RailwayNetwork | ~300 | ~420 | ✅ 100% |
 | Schedule | ~250 | ~680 | ✅ 100% |
+| JSON Serialization | ~180 | ~640 | ✅ 100% |
 | TrafficSimulator | ~180 | 0 | ⏳ 0% |
 | Visualization | ~400 | 0 | ⏳ 0% |
 | GUI | ~1500 | 0 | ⏳ 0% |
 | Database | ~200 | 0 | ⏳ 0% |
-| **TOTALE** | **~3180** | **~1450** | **32%** |
+| **TOTALE** | **~3360** | **~2090** | **38%** |
 
 ---
 

@@ -3,6 +3,7 @@
 
 #include "track_type.hpp"
 #include <string>
+#include <nlohmann/json.hpp>
 
 namespace fdc {
 
@@ -80,6 +81,16 @@ private:
     int capacity_;
     bool bidirectional_;
 };
+
+/**
+ * @brief JSON serialization for Edge
+ */
+void to_json(nlohmann::json& j, const Edge& edge);
+
+/**
+ * @brief JSON deserialization for Edge
+ */
+void from_json(const nlohmann::json& j, Edge& edge);
 
 } // namespace fdc
 

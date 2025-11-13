@@ -2,6 +2,9 @@
 #include <algorithm>
 #include <stdexcept>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
 
 namespace fdc {
 
@@ -180,7 +183,7 @@ bool TrainSchedule::validate_platforms() const {
             }
             
             int platform = stop.get_platform().value();
-            if (platform < 1 || platform > node->get_platform_count()) {
+            if (platform < 1 || platform > node->get_platforms()) {
                 return false; // Platform number out of range
             }
         }
@@ -471,7 +474,7 @@ ScheduleBuilder& ScheduleBuilder::assign_platforms_automatically() {
         auto& stop = schedule_->get_stop(i);
         auto node = network->get_node(stop.get_node_id());
         
-        if (node && node->get_platform_count() > 0) {
+        if (node && node->get_platforms() > 0) {
             stop.set_platform(1); // Simple assignment
         }
     }
@@ -615,6 +618,90 @@ std::vector<std::shared_ptr<TrainSchedule>> ScheduleManager::get_schedules_in_ti
     }
     
     return result;
+}
+
+// ============================================================================
+// JSON Serialization
+// ============================================================================
+
+std::string time_point_to_iso8601(const std::chrono::system_clock::time_point& tp) {
+    auto time_t = std::chrono::system_clock::to_time_t(tp);
+    std::tm tm = *std::gmtime(&time_t);
+    
+    char buffer[25];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%dT%H:%M:%S", &tm);
+    return std::string(buffer);
+}
+
+std::chrono::system_clock::time_point iso8601_to_time_point(const std::string& iso_str) {
+    std::tm tm = {};
+    std::istringstream ss(iso_str);
+    ss >> std::get_time(&tm, "%Y-%m-%dT%H:%M:%S");
+    
+    if (ss.fail()) {
+        throw std::invalid_argument("Invalid ISO 8601 time format: " + iso_str);
+    }
+    
+    return std::chrono::system_clock::from_time_t(std::mktime(&tm));
+}
+
+void to_json(nlohmann::json& j, const ScheduleStop& stop) {
+    j = nlohmann::json{
+        {"node_id", stop.get_node_id()},
+        {"arrival", time_point_to_iso8601(stop.get_arrival())},
+        {"departure", time_point_to_iso8601(stop.get_departure())},
+        {"is_stop", stop.is_stop()}
+    };
+    
+    if (stop.get_platform().has_value()) {
+        j["platform"] = stop.get_platform().value();
+    } else {
+        j["platform"] = nullptr;
+    }
+}
+
+void from_json(const nlohmann::json& j, ScheduleStop& stop) {
+    std::string node_id = j.at("node_id").get<std::string>();
+    std::string arrival_str = j.at("arrival").get<std::string>();
+    std::string departure_str = j.at("departure").get<std::string>();
+    bool is_stop = j.at("is_stop").get<bool>();
+    
+    auto arrival = iso8601_to_time_point(arrival_str);
+    auto departure = iso8601_to_time_point(departure_str);
+    
+    stop = ScheduleStop(node_id, arrival, departure, is_stop);
+    
+    if (j.contains("platform") && !j["platform"].is_null()) {
+        stop.set_platform(j["platform"].get<int>());
+    }
+}
+
+void to_json(nlohmann::json& j, const TrainSchedule& schedule) {
+    j = nlohmann::json{
+        {"train_id", schedule.get_train_id()},
+        {"schedule_id", schedule.get_schedule_id()},
+        {"stops", schedule.get_stops()}
+    };
+}
+
+std::shared_ptr<TrainSchedule> train_schedule_from_json(
+    const nlohmann::json& j, 
+    std::shared_ptr<RailwayNetwork> network) {
+    
+    std::string train_id = j.at("train_id").get<std::string>();
+    std::string schedule_id = j.at("schedule_id").get<std::string>();
+    
+    auto schedule = std::make_shared<TrainSchedule>(train_id, schedule_id, network);
+    
+    if (j.contains("stops")) {
+        for (const auto& stop_json : j["stops"]) {
+            ScheduleStop stop;
+            from_json(stop_json, stop);
+            schedule->add_stop(stop);
+        }
+    }
+    
+    return schedule;
 }
 
 } // namespace fdc

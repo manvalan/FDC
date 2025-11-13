@@ -3,6 +3,7 @@
 
 #include "train_type.hpp"
 #include <string>
+#include <nlohmann/json.hpp>
 
 namespace fdc {
 
@@ -77,6 +78,16 @@ private:
     double acceleration_;   // m/s²
     double deceleration_;   // m/s² (positive value)
 };
+
+/**
+ * @brief JSON serialization for Train
+ */
+void to_json(nlohmann::json& j, const Train& train);
+
+/**
+ * @brief JSON deserialization for Train
+ */
+void from_json(const nlohmann::json& j, Train& train);
 
 } // namespace fdc
 

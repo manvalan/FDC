@@ -18,11 +18,13 @@ Riscrittura in C++ del sistema di gestione reti ferroviarie FDC.
 - [x] Sistema Scheduling: `ScheduleStop`, `TrainSchedule`, `ScheduleBuilder`, `ScheduleManager`
 - [x] Conflict detection tra orari
 - [x] Costruzione automatica orari con calcolo tempi
+- [x] **JSON Serialization/Deserialization completo**
+- [x] Export/Import Network e Schedules su file
+- [x] Formato compatibile con versione Python
 
 ### 🚧 In Lavorazione
-- [ ] Serializzazione JSON
-- [ ] Interfaccia GUI con Qt
-- [ ] Visualizzazioni grafiche
+- [ ] Interfaccia GUI con Qt6
+- [ ] Visualizzazioni grafiche (network map, time-distance diagram)
 - [ ] Database MySQL (opzionale)
 
 ## 📋 Requisiti
@@ -185,6 +187,36 @@ Gestione completa orari ferroviari:
 - Rilevamento conflitti globale
 - Query per nodo/intervallo temporale
 - Statistiche aggregate
+
+#### Serializzazione JSON
+Export/Import completo per persistenza dati:
+
+**Funzionalità:**
+- Serializzazione automatica tutte le classi (Node, Edge, Train, Schedule)
+- Formato JSON human-readable
+- Orari in formato ISO 8601
+- Export/Import network completo
+- Export/Import schedules
+- File I/O con gestione errori
+
+**Uso:**
+```cpp
+#include "serialization.hpp"
+
+// Export network
+save_network_to_file(network, "my_network.json");
+
+// Export schedules
+save_schedules_to_file(schedules, "my_schedules.json");
+
+// Import network
+auto loaded_network = load_network_from_file("my_network.json");
+
+// Import schedules
+auto loaded_schedules = load_schedules_from_file("my_schedules.json", network);
+```
+
+**Formato compatibile con Python**: I file JSON possono essere condivisi tra versione C++ e Python
 
 ### Design Patterns
 

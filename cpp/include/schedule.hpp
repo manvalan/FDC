@@ -6,6 +6,7 @@
 #include <chrono>
 #include <optional>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include "railway_network.hpp"
 #include "train.hpp"
 
@@ -226,6 +227,34 @@ public:
     size_t get_schedule_count() const { return schedules_.size(); }
     void clear() { schedules_.clear(); }
 };
+
+// Helper function to convert time_point to ISO 8601 string
+std::string time_point_to_iso8601(const std::chrono::system_clock::time_point& tp);
+
+// Helper function to convert ISO 8601 string to time_point
+std::chrono::system_clock::time_point iso8601_to_time_point(const std::string& iso_str);
+
+/**
+ * @brief JSON serialization for ScheduleStop
+ */
+void to_json(nlohmann::json& j, const ScheduleStop& stop);
+
+/**
+ * @brief JSON deserialization for ScheduleStop
+ */
+void from_json(const nlohmann::json& j, ScheduleStop& stop);
+
+/**
+ * @brief JSON serialization for TrainSchedule
+ */
+void to_json(nlohmann::json& j, const TrainSchedule& schedule);
+
+/**
+ * @brief JSON deserialization for TrainSchedule (requires network pointer)
+ */
+std::shared_ptr<TrainSchedule> train_schedule_from_json(
+    const nlohmann::json& j, 
+    std::shared_ptr<RailwayNetwork> network);
 
 } // namespace fdc
 

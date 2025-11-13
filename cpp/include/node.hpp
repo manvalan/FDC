@@ -8,6 +8,7 @@
 #include <memory>
 #include <chrono>
 #include <optional>
+#include <nlohmann/json.hpp>
 
 namespace fdc {
 
@@ -145,6 +146,16 @@ private:
     // Platform schedule: platform_number -> list of time slots
     mutable std::map<int, std::vector<TimeSlot>> platform_schedule_;
 };
+
+/**
+ * @brief JSON serialization for Node
+ */
+void to_json(nlohmann::json& j, const Node& node);
+
+/**
+ * @brief JSON deserialization for Node
+ */
+void from_json(const nlohmann::json& j, Node& node);
 
 } // namespace fdc
 

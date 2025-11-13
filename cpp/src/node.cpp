@@ -109,4 +109,31 @@ const std::vector<TimeSlot>& Node::get_platform_schedule(int platform) const {
     return it->second;
 }
 
+// JSON serialization
+void to_json(nlohmann::json& j, const Node& node) {
+    j = nlohmann::json{
+        {"id", node.get_id()},
+        {"name", node.get_name()},
+        {"type", node_type_to_string(node.get_type())},
+        {"latitude", node.get_latitude()},
+        {"longitude", node.get_longitude()},
+        {"capacity", node.get_capacity()},
+        {"platform_count", node.get_platforms()}
+    };
+}
+
+void from_json(const nlohmann::json& j, Node& node) {
+    std::string id = j.at("id").get<std::string>();
+    std::string name = j.at("name").get<std::string>();
+    std::string type_str = j.at("type").get<std::string>();
+    double latitude = j.at("latitude").get<double>();
+    double longitude = j.at("longitude").get<double>();
+    int capacity = j.at("capacity").get<int>();
+    int platforms = j.at("platform_count").get<int>();
+    
+    NodeType type = string_to_node_type(type_str);
+    
+    node = Node(id, name, type, latitude, longitude, capacity, platforms);
+}
+
 } // namespace fdc
