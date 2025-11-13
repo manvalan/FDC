@@ -12,10 +12,11 @@ Riscrittura in C++ del sistema di gestione reti ferroviarie FDC.
 - [x] Enumerazioni: `NodeType`, `TrackType`, `TrainType`
 - [x] Gestione piattaforme e prenotazioni
 - [x] Calcoli fisici realistici movimento treni
+- [x] Classe `RailwayNetwork` con Boost.Graph
+- [x] Algoritmo Dijkstra per shortest path
+- [x] Pathfinding e analisi rete
 
 ### 🚧 In Lavorazione
-- [ ] Classe `RailwayNetwork` con Boost.Graph
-- [ ] Algoritmo Dijkstra per pathfinding
 - [ ] Gestione schedules e orari (`TrainSchedule`)
 - [ ] Serializzazione JSON
 - [ ] Interfaccia GUI con Qt
@@ -98,23 +99,27 @@ cmake --build . --config Release
 cpp/
 ├── CMakeLists.txt           # Build configuration principale
 ├── include/                 # Header files (.hpp)
-│   ├── node_type.hpp
-│   ├── track_type.hpp
-│   ├── train_type.hpp
-│   ├── node.hpp
-│   ├── edge.hpp
-│   ├── train.hpp
+│   ├── node_type.hpp       # ✅
+│   ├── track_type.hpp      # ✅
+│   ├── train_type.hpp      # ✅
+│   ├── node.hpp            # ✅
+│   ├── edge.hpp            # ✅
+│   ├── train.hpp           # ✅
+│   ├── railway_network.hpp # ✅
 │   └── ...                  # (altri headers in arrivo)
 ├── src/                     # Implementation files (.cpp)
-│   ├── CMakeLists.txt
-│   ├── node.cpp
-│   ├── edge.cpp
-│   ├── train.cpp
+│   ├── CMakeLists.txt      # ✅
+│   ├── node.cpp            # ✅
+│   ├── edge.cpp            # ✅
+│   ├── train.cpp           # ✅
+│   ├── railway_network.cpp # ✅
 │   └── ...                  # (altri sorgenti in arrivo)
 ├── tests/                   # Unit tests
 │   └── ...                  # (tests in arrivo)
 ├── examples/                # Esempi di utilizzo
-│   └── ...                  # (esempi in arrivo)
+│   ├── basic_example.cpp   # ✅
+│   ├── network_example.cpp # ✅
+│   └── ...                  # (altri esempi in arrivo)
 └── README.md               # Questo file
 ```
 
@@ -142,6 +147,15 @@ Rappresenta un treno con caratteristiche fisiche:
 - Accelerazione e decelerazione
 - Calcoli realistici tempi di viaggio
 - Type-safe con `TrainType` enum
+
+#### `RailwayNetwork`
+Gestisce la rete ferroviaria come grafo:
+- Usa **Boost.Graph** (adjacency_list)
+- Algoritmo **Dijkstra** per shortest path
+- Gestione nodi e archi (add/remove/get)
+- Analisi connettività e statistiche
+- Pathfinding multi-criterio
+- Calcolo vicini e distanze
 
 ### Design Patterns
 

@@ -1,6 +1,6 @@
 # 🚀 FDC C++ - Progetto di Riscrittura
 
-## 📊 Stato Attuale: FASE 1 COMPLETATA
+## 📊 Stato Attuale: FASE 2 COMPLETATA
 
 Ho iniziato la riscrittura completa del progetto FDC da Python a C++. Ecco cosa è stato fatto finora:
 
@@ -20,15 +20,18 @@ cpp/
 │   ├── train_type.hpp     ✅ Enum TrainType con conversioni
 │   ├── node.hpp           ✅ Classe Node (stazioni)
 │   ├── edge.hpp           ✅ Classe Edge (binari)
-│   └── train.hpp          ✅ Classe Train (treni)
+│   ├── train.hpp          ✅ Classe Train (treni)
+│   └── railway_network.hpp ✅ Classe RailwayNetwork (grafo)
 ├── src/                    ✅ Implementazioni (.cpp)
 │   ├── CMakeLists.txt     ✅ Build della libreria core
 │   ├── node.cpp           ✅ Implementazione Node
 │   ├── edge.cpp           ✅ Implementazione Edge
-│   └── train.cpp          ✅ Implementazione Train
+│   ├── train.cpp          ✅ Implementazione Train
+│   └── railway_network.cpp ✅ Implementazione RailwayNetwork
 ├── examples/               ✅ Esempi di utilizzo
 │   ├── CMakeLists.txt     ✅ Build esempi
-│   └── basic_example.cpp  ✅ Esempio completo funzionante
+│   ├── basic_example.cpp  ✅ Esempio completo funzionante
+│   └── network_example.cpp ✅ Esempio rete e pathfinding
 └── tests/                  ⏳ (directory pronta, tests da creare)
 ```
 
@@ -155,14 +158,56 @@ Time saved by Frecciarossa vs Regional: 77.32 minutes
 
 ---
 
-## 🚧 DA FARE (Prossime Fasi)
+## ✅ COMPLETATO (Fase 2 - Network Graph & Pathfinding)
 
-### Fase 2 - Network Graph & Algorithms
-- [ ] Classe `RailwayNetwork` con Boost.Graph
-- [ ] Algoritmo Dijkstra per shortest path
-- [ ] Gestione nodi e archi nel grafo
-- [ ] Pathfinding multi-criterio
-- [ ] Statistiche rete (numero nodi, lunghezza totale, ecc.)
+### ✅ `RailwayNetwork` - Gestione Grafo Ferroviario
+
+Implementata usando **Boost.Graph** (adjacency_list) con:
+- Gestione nodi (add/remove/get)
+- Gestione archi (add/remove/get, supporto bidirezionale)
+- **Algoritmo Dijkstra** per shortest path
+- Analisi connettività rete
+- Statistiche complete (nodi, archi, distanze, tipi binari)
+- Calcolo vicini e distanze
+
+**Funzionalità chiave:**
+```cpp
+// Node management
+bool add_node(const Node& node)
+bool remove_node(const std::string& node_id)
+std::shared_ptr<Node> get_node(const std::string& node_id)
+
+// Edge management  
+bool add_edge(const Edge& edge)
+bool remove_edge(from_node, to_node)
+std::vector<std::shared_ptr<Edge>> get_edges_from_node(node_id)
+
+// Pathfinding
+Path find_shortest_path(start, end, use_distance=true)
+std::vector<Path> find_k_shortest_paths(start, end, k)
+
+// Network analysis
+NetworkStats get_network_stats()
+bool is_connected()
+std::vector<std::string> get_neighbors(node_id)
+double calculate_distance(from_node, to_node)
+```
+
+**Strutture dati:**
+- `VertexProperties`: Proprietà nodi (Node condiviso)
+- `EdgeProperties`: Proprietà archi (Edge + peso per Dijkstra)
+- `Path`: Risultato pathfinding (nodi, archi, distanza totale, tempo minimo)
+- `NetworkStats`: Statistiche rete complete
+
+**Esempio funzionante:** `network_example.cpp`
+- Rete italiana 5 città (Milano, Bologna, Firenze, Roma, Napoli)
+- Alta velocità + percorsi alternativi
+- Pathfinding Milano → Napoli via Bologna-Firenze-Roma
+- Analisi vicini e statistiche
+
+---
+
+## 🚧 DA FARE (Prossime Fasi)
 
 ### Fase 3 - Scheduling
 - [ ] Classe `TrainSchedule` (orario treno)
@@ -210,13 +255,13 @@ Time saved by Frecciarossa vs Regional: 77.32 minutes
 | Node | ~150 | ~150 | ✅ 100% |
 | Edge | ~80 | ~70 | ✅ 100% |
 | Train | ~120 | ~130 | ✅ 100% |
-| RailwayNetwork | ~300 | 0 | ⏳ 0% |
+| RailwayNetwork | ~300 | ~420 | ✅ 100% |
 | Schedule | ~250 | 0 | ⏳ 0% |
 | TrafficSimulator | ~180 | 0 | ⏳ 0% |
 | Visualization | ~400 | 0 | ⏳ 0% |
 | GUI | ~1500 | 0 | ⏳ 0% |
 | Database | ~200 | 0 | ⏳ 0% |
-| **TOTALE** | **~3180** | **~350** | **11%** |
+| **TOTALE** | **~3180** | **~770** | **24%** |
 
 ---
 

@@ -3,6 +3,7 @@ set(FDC_CORE_SOURCES
     node.cpp
     edge.cpp
     train.cpp
+    railway_network.cpp
     # Additional sources will be added here
 )
 
