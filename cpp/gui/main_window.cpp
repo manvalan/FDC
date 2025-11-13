@@ -8,6 +8,7 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QGroupBox>
+#include <algorithm>
 #include <QSplitter>
 #include <QPushButton>
 #include <QLabel>
@@ -330,6 +331,41 @@ void MainWindow::setupSchedulesTab() {
     QWidget *schedulesWidget = new QWidget();
     QVBoxLayout *mainLayout = new QVBoxLayout(schedulesWidget);
     
+    // ===== SEZIONE TRENI =====
+    QGroupBox *trainsGroup = new QGroupBox(tr("📋 Parco Treni"));
+    QVBoxLayout *trainsGroupLayout = new QVBoxLayout();
+    
+    // Tabella treni
+    trainsTable = new QTableView();
+    trainsModel = new QStandardItemModel(this);
+    trainsModel->setHorizontalHeaderLabels({
+        tr("ID"), tr("Nome"), tr("Tipo"), tr("Vel. Max"), tr("Accel."), tr("Decel.")
+    });
+    trainsTable->setModel(trainsModel);
+    trainsTable->setAlternatingRowColors(true);
+    trainsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    trainsTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    trainsTable->horizontalHeader()->setStretchLastSection(true);
+    trainsGroupLayout->addWidget(trainsTable);
+    
+    // Pulsanti treni
+    QHBoxLayout *trainButtonsLayout = new QHBoxLayout();
+    QPushButton *addTrainBtn = new QPushButton(tr("➕ Aggiungi"));
+    QPushButton *editTrainBtn = new QPushButton(tr("✏️ Modifica"));
+    QPushButton *deleteTrainBtn = new QPushButton(tr("🗑️ Elimina"));
+    connect(addTrainBtn, &QPushButton::clicked, this, &MainWindow::addTrain);
+    connect(editTrainBtn, &QPushButton::clicked, this, &MainWindow::editTrain);
+    connect(deleteTrainBtn, &QPushButton::clicked, this, &MainWindow::deleteTrain);
+    trainButtonsLayout->addWidget(addTrainBtn);
+    trainButtonsLayout->addWidget(editTrainBtn);
+    trainButtonsLayout->addWidget(deleteTrainBtn);
+    trainButtonsLayout->addStretch();
+    trainsGroupLayout->addLayout(trainButtonsLayout);
+    
+    trainsGroup->setLayout(trainsGroupLayout);
+    mainLayout->addWidget(trainsGroup);
+    
+    // ===== SEZIONE ORARI =====
     // Filtro per linea
     QHBoxLayout *filterLayout = new QHBoxLayout();
     filterLayout->addWidget(new QLabel(tr("Filtra per linea:")));
@@ -786,23 +822,257 @@ void MainWindow::deleteConnection() {
 }
 
 void MainWindow::addLine() {
-    QMessageBox::information(this, tr("Aggiungi Linea"),
-        tr("Dialog aggiunta linea - da implementare"));
+    // Check if we have at least 2 stations
+    if (network->get_all_nodes().size() < 2) {
+        QMessageBox::information(this, tr("Stazioni Insufficienti"),
+            tr("Aggiungi almeno due stazioni prima di creare una linea."));
+        return;
+    }
+    
+    LineDialog dialog(network, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        Line line = dialog.getLine();
+        
+        // Check if line name already exists
+        for (const Line& l : lines) {
+            if (l.name == line.name) {
+                QMessageBox::warning(this, tr("Nome Duplicato"),
+                    tr("Esiste già una linea con nome: %1").arg(line.name));
+                return;
+            }
+        }
+        
+        // Add line
+        lines.append(line);
+        
+        // Update view
+        updateLinesView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Linea '%1' aggiunta con successo").arg(line.name), 
+            3000);
+    }
 }
 
 void MainWindow::editLine() {
-    QMessageBox::information(this, tr("Modifica Linea"),
-        tr("Dialog modifica linea - da implementare"));
+    // Get selected line
+    QModelIndexList selection = linesListView->selectionModel()->selectedIndexes();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una linea da modificare."));
+        return;
+    }
+    
+    int lineIndex = selection.first().row();
+    if (lineIndex < 0 || lineIndex >= lines.size()) {
+        return;
+    }
+    
+    Line existingLine = lines[lineIndex];
+    
+    // Open dialog in edit mode
+    LineDialog dialog(network, existingLine, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        Line updatedLine = dialog.getLine();
+        
+        // Replace line
+        lines[lineIndex] = updatedLine;
+        
+        // Update view
+        updateLinesView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Linea '%1' modificata con successo").arg(updatedLine.name), 
+            3000);
+    }
 }
 
 void MainWindow::deleteLine() {
-    QMessageBox::information(this, tr("Elimina Linea"),
-        tr("Funzione elimina linea - da implementare"));
+    // Get selected line
+    QModelIndexList selection = linesListView->selectionModel()->selectedIndexes();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una linea da eliminare."));
+        return;
+    }
+    
+    int lineIndex = selection.first().row();
+    if (lineIndex < 0 || lineIndex >= lines.size()) {
+        return;
+    }
+    
+    QString lineName = lines[lineIndex].name;
+    
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        tr("Conferma Eliminazione"),
+        tr("Sei sicuro di voler eliminare la linea '%1'?").arg(lineName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Remove line
+        lines.removeAt(lineIndex);
+        
+        // Update view
+        updateLinesView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Linea '%1' eliminata con successo").arg(lineName), 
+            3000);
+    }
+}
+
+void MainWindow::addTrain() {
+    TrainDialog dialog(this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto train = dialog.getTrain();
+        
+        // Check if train ID already exists
+        for (const auto& t : trains) {
+            if (t->get_id() == train->get_id()) {
+                QMessageBox::warning(this, tr("ID Duplicato"),
+                    tr("Esiste già un treno con ID: %1")
+                        .arg(QString::fromStdString(train->get_id())));
+                return;
+            }
+        }
+        
+        // Add train
+        trains.push_back(train);
+        
+        // Update view
+        updateTrainsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Treno '%1' aggiunto con successo")
+                .arg(QString::fromStdString(train->get_name())), 
+            3000);
+    }
+}
+
+void MainWindow::editTrain() {
+    // Get selected train
+    QModelIndexList selection = trainsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona un treno da modificare."));
+        return;
+    }
+    
+    // Get train ID from first column
+    QModelIndex index = selection.first();
+    QString trainId = trainsModel->data(
+        trainsModel->index(index.row(), 0)).toString();
+    
+    // Find train
+    std::shared_ptr<Train> train;
+    for (const auto& t : trains) {
+        if (t->get_id() == trainId.toStdString()) {
+            train = t;
+            break;
+        }
+    }
+    
+    if (!train) {
+        QMessageBox::warning(this, tr("Errore"),
+            tr("Treno non trovato."));
+        return;
+    }
+    
+    // Open dialog in edit mode
+    TrainDialog dialog(train, this);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        auto updatedTrain = dialog.getTrain();
+        
+        // Replace train
+        for (size_t i = 0; i < trains.size(); ++i) {
+            if (trains[i]->get_id() == train->get_id()) {
+                trains[i] = updatedTrain;
+                break;
+            }
+        }
+        
+        // Update view
+        updateTrainsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Treno '%1' modificato con successo")
+                .arg(QString::fromStdString(updatedTrain->get_name())), 
+            3000);
+    }
+}
+
+void MainWindow::deleteTrain() {
+    // Get selected train
+    QModelIndexList selection = trainsTable->selectionModel()->selectedRows();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona un treno da eliminare."));
+        return;
+    }
+    
+    // Get train info
+    QModelIndex index = selection.first();
+    QString trainId = trainsModel->data(
+        trainsModel->index(index.row(), 0)).toString();
+    QString trainName = trainsModel->data(
+        trainsModel->index(index.row(), 1)).toString();
+    
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        tr("Conferma Eliminazione"),
+        tr("Sei sicuro di voler eliminare il treno '%1'?").arg(trainName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Remove train
+        trains.erase(
+            std::remove_if(trains.begin(), trains.end(),
+                [&trainId](const std::shared_ptr<Train>& t) {
+                    return t->get_id() == trainId.toStdString();
+                }),
+            trains.end());
+        
+        // Update view
+        updateTrainsView();
+        
+        // Mark as modified
+        isModified = true;
+        updateWindowTitle();
+        
+        statusBar()->showMessage(
+            tr("Treno '%1' eliminato con successo").arg(trainName), 
+            3000);
+    }
 }
 
 void MainWindow::addSchedule() {
-    QMessageBox::information(this, tr("Aggiungi Treno"),
-        tr("Dialog aggiunta treno/orario - da implementare"));
+    QMessageBox::information(this, tr("Aggiungi Orario"),
+        tr("Dialog aggiunta orario - da implementare"));
 }
 
 void MainWindow::editSchedule() {
@@ -901,11 +1171,44 @@ void MainWindow::updateConnectionsView() {
     }
 }
 
+void MainWindow::updateTrainsView() {
+    trainsModel->removeRows(0, trainsModel->rowCount());
+    
+    for (const auto& train : trains) {
+        QList<QStandardItem*> row;
+        
+        row << new QStandardItem(QString::fromStdString(train->get_id()));
+        row << new QStandardItem(QString::fromStdString(train->get_name()));
+        row << new QStandardItem(QString::fromStdString(train_type_to_string(train->get_type())));
+        row << new QStandardItem(QString::number(train->get_max_speed(), 'f', 1));
+        row << new QStandardItem(QString::number(train->get_acceleration(), 'f', 2));
+        row << new QStandardItem(QString::number(train->get_deceleration(), 'f', 2));
+        
+        trainsModel->appendRow(row);
+    }
+}
+
 void MainWindow::updateLinesView() {
     linesModel->clear();
-    // TODO: Implementare gestione linee
-    // Per ora placeholder
-    linesModel->appendRow(new QStandardItem(tr("Nessuna linea definita")));
+    
+    if (lines.isEmpty()) {
+        linesModel->appendRow(new QStandardItem(tr("Nessuna linea definita")));
+        return;
+    }
+    
+    for (const Line& line : lines) {
+        auto *item = new QStandardItem(line.name);
+        
+        // Set line color as icon
+        QPixmap colorPixmap(16, 16);
+        colorPixmap.fill(line.color);
+        item->setIcon(QIcon(colorPixmap));
+        
+        // Add station count as tooltip
+        item->setToolTip(tr("%1 stazioni").arg(line.stationIds.count()));
+        
+        linesModel->appendRow(item);
+    }
 }
 
 void MainWindow::updateSchedulesView() {

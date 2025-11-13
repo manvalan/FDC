@@ -21,6 +21,8 @@
 #include "../include/serialization.hpp"
 #include "station_dialog.hpp"
 #include "connection_dialog.hpp"
+#include "train_dialog.hpp"
+#include "line_dialog.hpp"
 
 namespace fdc {
 
@@ -81,6 +83,9 @@ private slots:
     void deleteLine();
     
     // Tab 3: Treni e Orari
+    void addTrain();
+    void editTrain();
+    void deleteTrain();
     void addSchedule();
     void editSchedule();
     void deleteSchedule();
@@ -107,6 +112,7 @@ private:
     void updateWindowTitle();
     void updateStationsView();
     void updateConnectionsView();
+    void updateTrainsView();
     void updateLinesView();
     void updateSchedulesView();
     bool maybeSave();
@@ -127,6 +133,8 @@ private:
     QTextEdit *lineDetailsText;
     
     // Tab 3: Treni e Orari
+    QTableView *trainsTable;
+    QStandardItemModel *trainsModel;
     QTreeView *schedulesTreeView;
     QStandardItemModel *schedulesModel;
     QTextEdit *scheduleDetailsText;
@@ -140,6 +148,8 @@ private:
     
     // Data members
     std::shared_ptr<RailwayNetwork> network;
+    std::vector<std::shared_ptr<Train>> trains;
+    QVector<Line> lines;
     std::vector<std::shared_ptr<TrainSchedule>> schedules;
     
     // State

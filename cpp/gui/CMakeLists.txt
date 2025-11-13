@@ -24,6 +24,10 @@ set(GUI_SOURCES
     station_dialog.hpp
     connection_dialog.cpp
     connection_dialog.hpp
+    train_dialog.cpp
+    train_dialog.hpp
+    line_dialog.cpp
+    line_dialog.hpp
 )
 
 # Create executable
