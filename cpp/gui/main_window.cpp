@@ -25,6 +25,9 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
 
 namespace fdc {
 
@@ -295,16 +298,24 @@ void MainWindow::setupLinesTab() {
     
     // Pulsanti linee
     QHBoxLayout *lineButtonsLayout = new QHBoxLayout();
-    QPushButton *addLineBtn = new QPushButton(tr("Aggiungi"));
-    QPushButton *editLineBtn = new QPushButton(tr("Modifica"));
-    QPushButton *deleteLineBtn = new QPushButton(tr("Elimina"));
+    QPushButton *addLineBtn = new QPushButton(tr("➕ Aggiungi Linea"));
+    QPushButton *editLineBtn = new QPushButton(tr("✏️ Modifica"));
+    QPushButton *deleteLineBtn = new QPushButton(tr("🗑️ Elimina"));
+    QPushButton *createScheduleBtn = new QPushButton(tr("🚂 Crea Orario da Linea"));
+    createScheduleBtn->setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;");
     connect(addLineBtn, &QPushButton::clicked, this, &MainWindow::addLine);
     connect(editLineBtn, &QPushButton::clicked, this, &MainWindow::editLine);
     connect(deleteLineBtn, &QPushButton::clicked, this, &MainWindow::deleteLine);
+    connect(createScheduleBtn, &QPushButton::clicked, this, &MainWindow::createScheduleFromLine);
     lineButtonsLayout->addWidget(addLineBtn);
     lineButtonsLayout->addWidget(editLineBtn);
     lineButtonsLayout->addWidget(deleteLineBtn);
     linesListLayout->addLayout(lineButtonsLayout);
+    
+    // Pulsante "Crea Orario" in una riga separata per enfasi
+    QHBoxLayout *scheduleActionLayout = new QHBoxLayout();
+    scheduleActionLayout->addWidget(createScheduleBtn);
+    linesListLayout->addLayout(scheduleActionLayout);
     
     linesListGroup->setLayout(linesListLayout);
     splitter->addWidget(linesListGroup);
@@ -468,18 +479,107 @@ void MainWindow::openProject() {
     if (fileName.isEmpty()) return;
     
     try {
-        // Usa la funzione di serialization.hpp
-        network = load_network_from_file(fileName.toStdString());
-        schedules = load_schedules_from_file(fileName.toStdString(), network);
+        // Read complete project JSON
+        std::ifstream file(fileName.toStdString());
+        nlohmann::json projectJson;
+        file >> projectJson;
+        file.close();
+        
+        // 1. Load network
+        if (projectJson.contains("network")) {
+            network = railway_network_from_json(projectJson["network"]);
+        } else {
+            // Backward compatibility: old format without "network" wrapper
+            network = railway_network_from_json(projectJson);
+        }
+        
+        // 2. Load trains
+        trains.clear();
+        if (projectJson.contains("trains")) {
+            for (const auto& trainJson : projectJson["trains"]) {
+                std::string id = trainJson["id"];
+                std::string name = trainJson["name"];
+                std::string typeStr = trainJson["type"];
+                TrainType type = string_to_train_type(typeStr);
+                double max_speed = trainJson["max_speed"];
+                double acceleration = trainJson["acceleration"];
+                double deceleration = trainJson["deceleration"];
+                
+                auto train = std::make_shared<Train>(id, name, type, max_speed, acceleration, deceleration);
+                trains.push_back(train);
+            }
+        }
+        
+        // 3. Load lines
+        lines.clear();
+        if (projectJson.contains("lines")) {
+            for (const auto& lineJson : projectJson["lines"]) {
+                Line line;
+                line.name = QString::fromStdString(lineJson["name"]);
+                line.color = QColor(QString::fromStdString(lineJson["color"]));
+                
+                for (const auto& stationId : lineJson["stations"]) {
+                    line.stationIds.append(QString::fromStdString(stationId));
+                }
+                
+                lines.append(line);
+            }
+        }
+        
+        // 4. Load schedules
+        schedules.clear();
+        if (projectJson.contains("schedules")) {
+            for (const auto& scheduleJson : projectJson["schedules"]) {
+                std::string train_id = scheduleJson["train_id"];
+                std::string schedule_id = scheduleJson["schedule_id"];
+                
+                auto schedule = std::make_shared<TrainSchedule>(train_id, schedule_id, network);
+                
+                for (const auto& stopJson : scheduleJson["stops"]) {
+                    std::string node_id = stopJson["node_id"];
+                    std::string arrival_str = stopJson["arrival"];
+                    std::string departure_str = stopJson["departure"];
+                    bool is_stop = stopJson["is_stop"];
+                    
+                    // Parse ISO 8601 datetime
+                    std::tm arrival_tm = {}, departure_tm = {};
+                    std::istringstream arrival_ss(arrival_str);
+                    std::istringstream departure_ss(departure_str);
+                    arrival_ss >> std::get_time(&arrival_tm, "%Y-%m-%dT%H:%M:%S");
+                    departure_ss >> std::get_time(&departure_tm, "%Y-%m-%dT%H:%M:%S");
+                    
+                    auto arrival = std::chrono::system_clock::from_time_t(std::mktime(&arrival_tm));
+                    auto departure = std::chrono::system_clock::from_time_t(std::mktime(&departure_tm));
+                    
+                    ScheduleStop stop(node_id, arrival, departure, is_stop);
+                    
+                    if (!stopJson["platform"].is_null()) {
+                        stop.set_platform(stopJson["platform"]);
+                    }
+                    
+                    schedule->add_stop(stop);
+                }
+                
+                schedules.push_back(schedule);
+            }
+        }
         
         currentFilePath = fileName;
         updateStationsView();
         updateConnectionsView();
+        updateTrainsView();
         updateLinesView();
         updateSchedulesView();
         setModified(false);
         
-        statusBar()->showMessage(tr("Progetto caricato: %1").arg(fileName), 3000);
+        QString message = tr("Progetto caricato: %1").arg(fileName);
+        if (projectJson.contains("metadata")) {
+            message += tr(" (%1 treni, %2 linee, %3 orari)")
+                .arg(trains.size())
+                .arg(lines.size())
+                .arg(schedules.size());
+        }
+        statusBar()->showMessage(message, 5000);
     } catch (const std::exception& e) {
         QMessageBox::critical(this, tr("Errore"),
             tr("Impossibile aprire il file:\n%1").arg(e.what()));
@@ -493,8 +593,91 @@ void MainWindow::saveProject() {
     }
     
     try {
-        save_network_to_file(*network, currentFilePath.toStdString());
-        save_schedules_to_file(schedules, currentFilePath.toStdString());
+        // Create complete project JSON
+        nlohmann::json projectJson;
+        
+        // 1. Save network (nodes + edges)
+        projectJson["network"] = railway_network_to_json(*network);
+        
+        // 2. Save trains
+        nlohmann::json trainsArray = nlohmann::json::array();
+        for (const auto& train : trains) {
+            nlohmann::json trainJson;
+            trainJson["id"] = train->get_id();
+            trainJson["name"] = train->get_name();
+            trainJson["type"] = train_type_to_string(train->get_type());
+            trainJson["max_speed"] = train->get_max_speed();
+            trainJson["acceleration"] = train->get_acceleration();
+            trainJson["deceleration"] = train->get_deceleration();
+            trainsArray.push_back(trainJson);
+        }
+        projectJson["trains"] = trainsArray;
+        
+        // 3. Save lines
+        nlohmann::json linesArray = nlohmann::json::array();
+        for (const auto& line : lines) {
+            nlohmann::json lineJson;
+            lineJson["name"] = line.name.toStdString();
+            lineJson["color"] = line.color.name().toStdString();
+            nlohmann::json stationsArray = nlohmann::json::array();
+            for (const auto& stationId : line.stationIds) {
+                stationsArray.push_back(stationId.toStdString());
+            }
+            lineJson["stations"] = stationsArray;
+            linesArray.push_back(lineJson);
+        }
+        projectJson["lines"] = linesArray;
+        
+        // 4. Save schedules
+        nlohmann::json schedulesArray = nlohmann::json::array();
+        for (const auto& schedule : schedules) {
+            nlohmann::json scheduleJson;
+            scheduleJson["train_id"] = schedule->get_train_id();
+            scheduleJson["schedule_id"] = schedule->get_schedule_id();
+            
+            nlohmann::json stopsArray = nlohmann::json::array();
+            for (const auto& stop : schedule->get_stops()) {
+                nlohmann::json stopJson;
+                stopJson["node_id"] = stop.get_node_id();
+                
+                // Convert time_point to ISO 8601 string
+                auto arrival_t = std::chrono::system_clock::to_time_t(stop.get_arrival());
+                auto departure_t = std::chrono::system_clock::to_time_t(stop.get_departure());
+                
+                char arrival_str[30], departure_str[30];
+                std::strftime(arrival_str, sizeof(arrival_str), "%Y-%m-%dT%H:%M:%S", std::localtime(&arrival_t));
+                std::strftime(departure_str, sizeof(departure_str), "%Y-%m-%dT%H:%M:%S", std::localtime(&departure_t));
+                
+                stopJson["arrival"] = arrival_str;
+                stopJson["departure"] = departure_str;
+                stopJson["is_stop"] = stop.is_stop();
+                
+                if (stop.get_platform()) {
+                    stopJson["platform"] = *stop.get_platform();
+                } else {
+                    stopJson["platform"] = nullptr;
+                }
+                
+                stopsArray.push_back(stopJson);
+            }
+            scheduleJson["stops"] = stopsArray;
+            schedulesArray.push_back(scheduleJson);
+        }
+        projectJson["schedules"] = schedulesArray;
+        
+        // 5. Add metadata
+        projectJson["metadata"] = {
+            {"version", "0.2.0"},
+            {"created_by", "FDC Railway Manager C++"},
+            {"num_trains", trains.size()},
+            {"num_lines", lines.size()},
+            {"num_schedules", schedules.size()}
+        };
+        
+        // Write to file with pretty printing
+        std::ofstream file(currentFilePath.toStdString());
+        file << projectJson.dump(2);
+        file.close();
         
         setModified(false);
         statusBar()->showMessage(tr("Progetto salvato: %1").arg(currentFilePath), 3000);
@@ -936,6 +1119,185 @@ void MainWindow::deleteLine() {
     }
 }
 
+void MainWindow::createScheduleFromLine() {
+    // Check if there are trains
+    if (trains.empty()) {
+        QMessageBox::warning(this, tr("Nessun Treno"),
+            tr("Devi prima creare almeno un treno.\nVai al Tab 'Treni e Orari' per aggiungere treni."));
+        return;
+    }
+    
+    // Get selected line
+    QModelIndexList selection = linesListView->selectionModel()->selectedIndexes();
+    if (selection.isEmpty()) {
+        QMessageBox::information(this, tr("Nessuna Selezione"),
+            tr("Seleziona una linea per creare un orario."));
+        return;
+    }
+    
+    int lineIndex = selection.first().row();
+    if (lineIndex < 0 || lineIndex >= lines.size()) {
+        return;
+    }
+    
+    const auto& line = lines[lineIndex];
+    
+    if (line.stationIds.size() < 2) {
+        QMessageBox::warning(this, tr("Linea Incompleta"),
+            tr("La linea deve avere almeno 2 stazioni."));
+        return;
+    }
+    
+    // Create dialog for quick schedule creation
+    QDialog dialog(this);
+    dialog.setWindowTitle(tr("Crea Orario Rapido - Linea: %1").arg(line.name));
+    dialog.resize(500, 400);
+    
+    auto* layout = new QVBoxLayout(&dialog);
+    
+    // Line info
+    auto* infoLabel = new QLabel(tr("<b>Linea:</b> %1<br><b>Stazioni totali:</b> %2")
+        .arg(line.name).arg(line.stationIds.size()));
+    layout->addWidget(infoLabel);
+    
+    auto* formLayout = new QFormLayout();
+    
+    // Train selection
+    auto* trainCombo = new QComboBox();
+    for (const auto& train : trains) {
+        QString label = QString::fromStdString(
+            train->get_id() + " - " + train->get_name() + " (" + 
+            train_type_to_string(train->get_type()) + ")"
+        );
+        trainCombo->addItem(label, QString::fromStdString(train->get_id()));
+    }
+    formLayout->addRow(tr("Treno:"), trainCombo);
+    
+    // Start station
+    auto* startStationCombo = new QComboBox();
+    for (const auto& stationId : line.stationIds) {
+        auto node = network->get_node(stationId.toStdString());
+        QString label = node ? QString::fromStdString(node->get_name()) : stationId;
+        startStationCombo->addItem(label, stationId);
+    }
+    formLayout->addRow(tr("Stazione di Partenza:"), startStationCombo);
+    
+    // End station
+    auto* endStationCombo = new QComboBox();
+    for (const auto& stationId : line.stationIds) {
+        auto node = network->get_node(stationId.toStdString());
+        QString label = node ? QString::fromStdString(node->get_name()) : stationId;
+        endStationCombo->addItem(label, stationId);
+    }
+    endStationCombo->setCurrentIndex(line.stationIds.size() - 1); // Default: ultima stazione
+    formLayout->addRow(tr("Stazione di Arrivo:"), endStationCombo);
+    
+    // Departure time
+    auto* departureTimeEdit = new QDateTimeEdit(QDateTime::currentDateTime());
+    departureTimeEdit->setDisplayFormat("dd/MM/yyyy HH:mm");
+    departureTimeEdit->setCalendarPopup(true);
+    formLayout->addRow(tr("Orario Partenza:"), departureTimeEdit);
+    
+    // Dwell time (sosta)
+    auto* dwellTimeSpin = new QSpinBox();
+    dwellTimeSpin->setRange(1, 60);
+    dwellTimeSpin->setValue(2); // 2 minuti default
+    dwellTimeSpin->setSuffix(" min");
+    formLayout->addRow(tr("Tempo Sosta:"), dwellTimeSpin);
+    
+    layout->addLayout(formLayout);
+    
+    // Info text
+    auto* helpText = new QLabel(tr(
+        "<i>Il sistema creerà automaticamente un orario con tutte le stazioni "
+        "intermedie tra partenza e arrivo, calcolando i tempi di viaggio in base "
+        "alle prestazioni del treno e alle distanze della rete.</i>"
+    ));
+    helpText->setWordWrap(true);
+    helpText->setStyleSheet("color: #666; padding: 10px; background-color: #f0f0f0; border-radius: 5px;");
+    layout->addWidget(helpText);
+    
+    // Buttons
+    auto* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+    connect(buttonBox, &QDialogButtonBox::accepted, &dialog, &QDialog::accept);
+    connect(buttonBox, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+    layout->addWidget(buttonBox);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        int startIdx = startStationCombo->currentIndex();
+        int endIdx = endStationCombo->currentIndex();
+        
+        if (startIdx >= endIdx) {
+            QMessageBox::warning(this, tr("Selezione Non Valida"),
+                tr("La stazione di arrivo deve essere successiva a quella di partenza."));
+            return;
+        }
+        
+        // Get selected train
+        std::string trainId = trainCombo->currentData().toString().toStdString();
+        std::shared_ptr<Train> selectedTrain = nullptr;
+        for (const auto& train : trains) {
+            if (train->get_id() == trainId) {
+                selectedTrain = train;
+                break;
+            }
+        }
+        
+        if (!selectedTrain) {
+            QMessageBox::critical(this, tr("Errore"), tr("Treno non trovato."));
+            return;
+        }
+        
+        try {
+            // Create schedule using ScheduleBuilder
+            std::string scheduleId = "SCH_" + trainId + "_" + std::to_string(schedules.size() + 1);
+            ScheduleBuilder builder(trainId, scheduleId, network, selectedTrain);
+            
+            auto startTime = std::chrono::system_clock::from_time_t(
+                departureTimeEdit->dateTime().toSecsSinceEpoch()
+            );
+            builder.set_start_time(startTime);
+            
+            std::chrono::seconds dwellTime(dwellTimeSpin->value() * 60);
+            
+            // Add all stations from start to end
+            for (int i = startIdx; i <= endIdx; ++i) {
+                std::string stationId = line.stationIds[i].toStdString();
+                builder.add_stop_auto(stationId, dwellTime);
+            }
+            
+            // Enable automatic platform assignment
+            builder.enable_auto_platform_assignment(true);
+            
+            // Build the schedule
+            auto schedule = builder.build();
+            schedules.push_back(schedule);
+            
+            // Update views
+            updateSchedulesView();
+            setModified(true);
+            
+            // Switch to schedules tab
+            tabWidget->setCurrentIndex(2); // Tab 3: Treni e Orari
+            
+            QMessageBox::information(this, tr("Successo"),
+                tr("Orario creato con successo!\n\n"
+                   "Treno: %1\n"
+                   "Fermate: %2\n"
+                   "Da: %3\n"
+                   "A: %4")
+                    .arg(QString::fromStdString(trainId))
+                    .arg(endIdx - startIdx + 1)
+                    .arg(startStationCombo->currentText())
+                    .arg(endStationCombo->currentText()));
+            
+        } catch (const std::exception& e) {
+            QMessageBox::critical(this, tr("Errore"),
+                tr("Impossibile creare l'orario:\n%1").arg(e.what()));
+        }
+    }
+}
+
 void MainWindow::addTrain() {
     TrainDialog dialog(this);
     
@@ -1152,28 +1514,223 @@ void MainWindow::deleteSchedule() {
 }
 
 void MainWindow::filterSchedulesByLine(int lineIndex) {
-    // TODO: Implementare filtro schedules per linea
-    Q_UNUSED(lineIndex);
+    schedulesModel->removeRows(0, schedulesModel->rowCount());
+    
+    // lineIndex 0 = "Tutte le linee" (show all)
+    if (lineIndex <= 0 || lineIndex > lines.size()) {
+        // Show all schedules
+        for (const auto& schedule : schedules) {
+            addScheduleToView(schedule);
+        }
+        return;
+    }
+    
+    // Filter by selected line (lineIndex-1 because first item is "Tutte")
+    const auto& selectedLine = lines[lineIndex - 1];
+    
+    for (const auto& schedule : schedules) {
+        auto nodeSequence = schedule->get_node_sequence();
+        
+        // Check if schedule follows this line (all stations in order)
+        bool matchesLine = true;
+        size_t scheduleIdx = 0;
+        for (const auto& stationId : selectedLine.stationIds) {
+            // Find this station in schedule
+            bool found = false;
+            for (; scheduleIdx < nodeSequence.size(); ++scheduleIdx) {
+                if (nodeSequence[scheduleIdx] == stationId.toStdString()) {
+                    found = true;
+                    scheduleIdx++;
+                    break;
+                }
+            }
+            if (!found) {
+                matchesLine = false;
+                break;
+            }
+        }
+        
+        if (matchesLine) {
+            addScheduleToView(schedule);
+        }
+    }
+}
+
+// Helper function to add schedule to view (extracted from updateSchedulesView)
+void MainWindow::addScheduleToView(const std::shared_ptr<TrainSchedule>& schedule) {
+    QList<QStandardItem*> row;
+    
+    // Train ID
+    row << new QStandardItem(QString::fromStdString(schedule->get_train_id()));
+    
+    // Train type
+    QString trainType = tr("Sconosciuto");
+    for (const auto& train : trains) {
+        if (train->get_id() == schedule->get_train_id()) {
+            trainType = QString::fromStdString(train_type_to_string(train->get_type()));
+            break;
+        }
+    }
+    row << new QStandardItem(trainType);
+    
+    const auto& stops = schedule->get_stops();
+    if (!stops.empty()) {
+        const auto& firstStop = stops.front();
+        const auto& lastStop = stops.back();
+        
+        auto firstNode = network->get_node(firstStop.get_node_id());
+        auto lastNode = network->get_node(lastStop.get_node_id());
+        
+        if (firstNode && lastNode) {
+            auto departureTime = std::chrono::system_clock::to_time_t(firstStop.get_departure());
+            QDateTime departureQt = QDateTime::fromSecsSinceEpoch(departureTime);
+            QString origin = QString::fromStdString(firstNode->get_name()) + 
+                           " (" + departureQt.toString("HH:mm") + ")";
+            
+            auto arrivalTime = std::chrono::system_clock::to_time_t(lastStop.get_arrival());
+            QDateTime arrivalQt = QDateTime::fromSecsSinceEpoch(arrivalTime);
+            QString destination = QString::fromStdString(lastNode->get_name()) + 
+                                " (" + arrivalQt.toString("HH:mm") + ")";
+            
+            row << new QStandardItem(origin);
+            row << new QStandardItem(destination);
+        } else {
+            row << new QStandardItem(tr("-"));
+            row << new QStandardItem(tr("-"));
+        }
+    } else {
+        row << new QStandardItem(tr("-"));
+        row << new QStandardItem(tr("-"));
+    }
+    
+    schedulesModel->appendRow(row);
 }
 
 void MainWindow::onStationSelectionChanged() {
-    // TODO: Aggiornare dettagli stazione selezionata
+    // Station details can be shown in a future status bar update or tooltip
+    // For now, just update selection state
+    Q_UNUSED(this);
 }
 
 void MainWindow::onConnectionSelectionChanged() {
-    // TODO: Aggiornare dettagli connessione selezionata
+    // Connection details can be shown in a future status bar update or tooltip
+    // For now, just update selection state
+    Q_UNUSED(this);
 }
 
 void MainWindow::onLineSelectionChanged() {
-    // TODO: Aggiornare dettagli linea selezionata
     QModelIndexList selected = linesListView->selectionModel()->selectedIndexes();
     if (selected.isEmpty()) {
         lineDetailsText->clear();
         return;
     }
     
-    // Placeholder: mostra info linea
-    lineDetailsText->setText(tr("Dettagli linea selezionata (da implementare)"));
+    int row = selected.first().row();
+    if (row >= 0 && row < lines.size()) {
+        const auto& line = lines[row];
+        
+        QString details = "<h3>🚉 Dettagli Linea</h3>";
+        
+        // Line info
+        QString colorBox = QString("<span style='background-color:%1; padding:5px 15px; border:1px solid #333;'>&nbsp;&nbsp;&nbsp;</span>")
+            .arg(line.color.name());
+        details += "<p><b>Nome:</b> " + line.name + " " + colorBox + "</p>";
+        details += "<p><b>Numero Stazioni:</b> " + QString::number(line.stationIds.size()) + "</p>";
+        
+        // Calculate total distance
+        double totalDistance = 0.0;
+        for (int i = 1; i < line.stationIds.size(); ++i) {
+            double dist = network->calculate_distance(
+                line.stationIds[i-1].toStdString(),
+                line.stationIds[i].toStdString()
+            );
+            if (dist > 0) {
+                totalDistance += dist;
+            }
+        }
+        details += "<p><b>Lunghezza Totale:</b> " + QString::number(totalDistance, 'f', 1) + " km</p>";
+        
+        // Stations table
+        details += "<h4>📍 Sequenza Stazioni:</h4>";
+        details += "<table border='1' cellpadding='5' cellspacing='0' style='border-collapse:collapse; width:100%'>";
+        details += "<tr style='background-color:#e0e0e0'>";
+        details += "<th>#</th><th>Stazione</th><th>Distanza da Precedente</th><th>Distanza Progressiva</th>";
+        details += "</tr>";
+        
+        double progressiveDistance = 0.0;
+        for (int i = 0; i < line.stationIds.size(); ++i) {
+            auto node = network->get_node(line.stationIds[i].toStdString());
+            QString stationName = node ? QString::fromStdString(node->get_name()) 
+                                      : line.stationIds[i];
+            
+            double segmentDistance = 0.0;
+            if (i > 0) {
+                segmentDistance = network->calculate_distance(
+                    line.stationIds[i-1].toStdString(),
+                    line.stationIds[i].toStdString()
+                );
+                if (segmentDistance > 0) {
+                    progressiveDistance += segmentDistance;
+                }
+            }
+            
+            QString rowColor = (i % 2 == 0) ? "#ffffff" : "#f5f5f5";
+            details += "<tr style='background-color:" + rowColor + "'>";
+            details += "<td align='center'>" + QString::number(i + 1) + "</td>";
+            details += "<td>" + stationName + "</td>";
+            
+            if (i == 0) {
+                details += "<td align='center'>-</td>";
+                details += "<td align='center'>0.0 km</td>";
+            } else {
+                details += "<td align='right'>" + QString::number(segmentDistance, 'f', 1) + " km</td>";
+                details += "<td align='right'>" + QString::number(progressiveDistance, 'f', 1) + " km</td>";
+            }
+            details += "</tr>";
+        }
+        details += "</table>";
+        
+        // Count trains using this line
+        int trainsUsingLine = 0;
+        QStringList trainsList;
+        for (const auto& schedule : schedules) {
+            auto nodeSequence = schedule->get_node_sequence();
+            
+            // Check if schedule follows this line (all stations in order)
+            bool matchesLine = true;
+            size_t scheduleIdx = 0;
+            for (const auto& stationId : line.stationIds) {
+                // Find this station in schedule
+                bool found = false;
+                for (; scheduleIdx < nodeSequence.size(); ++scheduleIdx) {
+                    if (nodeSequence[scheduleIdx] == stationId.toStdString()) {
+                        found = true;
+                        scheduleIdx++;
+                        break;
+                    }
+                }
+                if (!found) {
+                    matchesLine = false;
+                    break;
+                }
+            }
+            
+            if (matchesLine) {
+                trainsUsingLine++;
+                trainsList.append(QString::fromStdString(schedule->get_train_id()));
+            }
+        }
+        
+        details += "<h4>🚂 Treni su questa Linea:</h4>";
+        if (trainsUsingLine > 0) {
+            details += "<p><b>Numero Treni:</b> " + QString::number(trainsUsingLine) + "</p>";
+            details += "<p>" + trainsList.join(", ") + "</p>";
+        } else {
+            details += "<p><i>Nessun treno configurato su questa linea</i></p>";
+        }
+        
+        lineDetailsText->setHtml(details);
+    }
 }
 
 void MainWindow::onScheduleSelectionChanged() {
@@ -1354,55 +1911,14 @@ void MainWindow::updateSchedulesView() {
     schedulesModel->removeRows(0, schedulesModel->rowCount());
     
     for (const auto& schedule : schedules) {
-        QList<QStandardItem*> row;
-        
-        // Train ID
-        row << new QStandardItem(QString::fromStdString(schedule->get_train_id()));
-        
-        // Train type - find the train to get its type
-        QString trainType = tr("Sconosciuto");
-        for (const auto& train : trains) {
-            if (train->get_id() == schedule->get_train_id()) {
-                trainType = QString::fromStdString(train_type_to_string(train->get_type()));
-                break;
-            }
-        }
-        row << new QStandardItem(trainType);
-        
-        const auto& stops = schedule->get_stops();
-        if (!stops.empty()) {
-            const auto& firstStop = stops.front();
-            const auto& lastStop = stops.back();
-            
-            // Origin and destination stations
-            auto firstNode = network->get_node(firstStop.get_node_id());
-            auto lastNode = network->get_node(lastStop.get_node_id());
-            
-            if (firstNode && lastNode) {
-                // Format departure time
-                auto departureTime = std::chrono::system_clock::to_time_t(firstStop.get_departure());
-                QDateTime departureQt = QDateTime::fromSecsSinceEpoch(departureTime);
-                QString origin = QString::fromStdString(firstNode->get_name()) + 
-                               " (" + departureQt.toString("HH:mm") + ")";
-                
-                // Format arrival time
-                auto arrivalTime = std::chrono::system_clock::to_time_t(lastStop.get_arrival());
-                QDateTime arrivalQt = QDateTime::fromSecsSinceEpoch(arrivalTime);
-                QString destination = QString::fromStdString(lastNode->get_name()) + 
-                                    " (" + arrivalQt.toString("HH:mm") + ")";
-                
-                row << new QStandardItem(origin);
-                row << new QStandardItem(destination);
-            } else {
-                row << new QStandardItem(tr("-"));
-                row << new QStandardItem(tr("-"));
-            }
-        } else {
-            row << new QStandardItem(tr("-"));
-            row << new QStandardItem(tr("-"));
-        }
-        
-        schedulesModel->appendRow(row);
+        addScheduleToView(schedule);
+    }
+    
+    // Update line filter combo
+    lineFilterCombo->clear();
+    lineFilterCombo->addItem(tr("Tutte le linee"), -1);
+    for (int i = 0; i < lines.size(); ++i) {
+        lineFilterCombo->addItem(lines[i].name, i);
     }
 }
 

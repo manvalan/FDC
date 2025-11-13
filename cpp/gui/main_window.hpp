@@ -82,6 +82,7 @@ private slots:
     void addLine();
     void editLine();
     void deleteLine();
+    void createScheduleFromLine();
     
     // Tab 3: Treni e Orari
     void addTrain();
@@ -116,6 +117,7 @@ private:
     void updateTrainsView();
     void updateLinesView();
     void updateSchedulesView();
+    void addScheduleToView(const std::shared_ptr<TrainSchedule>& schedule);
     bool maybeSave();
     void setModified(bool modified);
     
