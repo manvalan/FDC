@@ -15,9 +15,11 @@ Riscrittura in C++ del sistema di gestione reti ferroviarie FDC.
 - [x] Classe `RailwayNetwork` con Boost.Graph
 - [x] Algoritmo Dijkstra per shortest path
 - [x] Pathfinding e analisi rete
+- [x] Sistema Scheduling: `ScheduleStop`, `TrainSchedule`, `ScheduleBuilder`, `ScheduleManager`
+- [x] Conflict detection tra orari
+- [x] Costruzione automatica orari con calcolo tempi
 
 ### 🚧 In Lavorazione
-- [ ] Gestione schedules e orari (`TrainSchedule`)
 - [ ] Serializzazione JSON
 - [ ] Interfaccia GUI con Qt
 - [ ] Visualizzazioni grafiche
@@ -156,6 +158,33 @@ Gestisce la rete ferroviaria come grafo:
 - Analisi connettività e statistiche
 - Pathfinding multi-criterio
 - Calcolo vicini e distanze
+
+#### Sistema Scheduling
+Gestione completa orari ferroviari:
+
+**`ScheduleStop`**: Singola fermata con orari
+- Orari arrivo/partenza (std::chrono)
+- Assegnazione binario (std::optional)
+- Calcolo tempo di sosta
+- Validazione coerenza temporale
+
+**`TrainSchedule`**: Orario completo treno
+- Lista ordinata fermate
+- Validazione multi-livello (cronologia, rete, binari)
+- Calcolo distanze e tempi totali
+- Conflict detection tra orari
+- Query avanzate (visite nodo, sequenza percorso)
+
+**`ScheduleBuilder`**: Costruzione orari (Builder Pattern)
+- Fluent API per costruzione step-by-step
+- Calcolo automatico tempi di viaggio
+- Assegnazione automatica binari
+- 3 modalità: manuale, semi-auto, completamente automatica
+
+**`ScheduleManager`**: Gestione collezioni
+- Rilevamento conflitti globale
+- Query per nodo/intervallo temporale
+- Statistiche aggregate
 
 ### Design Patterns
 

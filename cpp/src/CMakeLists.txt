@@ -4,6 +4,7 @@ set(FDC_CORE_SOURCES
     edge.cpp
     train.cpp
     railway_network.cpp
+    schedule.cpp
     # Additional sources will be added here
 )
 
