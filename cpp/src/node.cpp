@@ -129,7 +129,20 @@ void from_json(const nlohmann::json& j, Node& node) {
     double latitude = j.at("latitude").get<double>();
     double longitude = j.at("longitude").get<double>();
     int capacity = j.at("capacity").get<int>();
-    int platforms = j.at("platform_count").get<int>();
+    
+    // Handle both "platform_count" and "platforms" for backwards compatibility
+    int platforms = 0;
+    if (j.contains("platform_count")) {
+        platforms = j.at("platform_count").get<int>();
+    } else if (j.contains("platforms")) {
+        platforms = j.at("platforms").get<int>();
+    } else {
+        // Default value based on node type
+        NodeType type = string_to_node_type(type_str);
+        if (type == NodeType::STATION || type == NodeType::INTERCHANGE) {
+            platforms = 2;  // Default 2 platforms for stations
+        }
+    }
     
     NodeType type = string_to_node_type(type_str);
     

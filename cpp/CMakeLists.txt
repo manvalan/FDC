@@ -62,6 +62,16 @@ if(BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
+# GUI
+if(BUILD_GUI)
+    add_subdirectory(gui)
+    if(Qt6_FOUND)
+        message(STATUS "Building GUI application with Qt6")
+    else()
+        message(STATUS "Building GUI application with Qt5")
+    endif()
+endif()
+
 # Installation
 install(DIRECTORY include/ DESTINATION include/fdc)
 install(TARGETS fdc_core
