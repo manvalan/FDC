@@ -8,6 +8,7 @@
 #include <QGroupBox>
 #include <QColorDialog>
 #include <QSplitter>
+#include <algorithm>
 
 namespace fdc {
 
@@ -63,6 +64,9 @@ void LineDialog::setupUI() {
     auto *availableLayout = new QVBoxLayout();
     availableLayout->addWidget(new QLabel("Stazioni Disponibili:"));
     availableStationsList = new QListWidget(this);
+    // Enable double-click to add station
+    connect(availableStationsList, &QListWidget::itemDoubleClicked, 
+            this, &LineDialog::onAvailableStationDoubleClicked);
     availableLayout->addWidget(availableStationsList);
     
     // Control buttons (center)
@@ -70,7 +74,7 @@ void LineDialog::setupUI() {
     controlLayout->addStretch();
     
     addButton = new QPushButton("→ Aggiungi", this);
-    addButton->setToolTip("Aggiungi stazione alla linea");
+    addButton->setToolTip("Aggiungi stazione alla linea (o doppio click)");
     connect(addButton, &QPushButton::clicked, this, &LineDialog::addStation);
     controlLayout->addWidget(addButton);
     
@@ -149,13 +153,11 @@ void LineDialog::setupUI() {
 void LineDialog::loadLineData() {
     nameEdit->setText(existingLine.name);
     
-    // Load stations in line
+    // Load stations in line (show only name, not ID)
     for (const QString& stationId : existingLine.stationIds) {
         auto node = network->get_node(stationId.toStdString());
         if (node) {
-            QString displayText = QString("%1 - %2")
-                .arg(QString::fromStdString(node->get_id()))
-                .arg(QString::fromStdString(node->get_name()));
+            QString displayText = QString::fromStdString(node->get_name());
             
             auto *item = new QListWidgetItem(displayText);
             item->setData(Qt::UserRole, QString::fromStdString(node->get_id()));
@@ -175,18 +177,27 @@ void LineDialog::updateStationList() {
         usedStations.insert(stationsList->item(i)->data(Qt::UserRole).toString());
     }
     
-    // Add only unused stations to available list
+    // Collect unused stations with their names for sorting
+    QList<QPair<QString, QString>> stationsToAdd; // pair<name, id>
     for (const auto& node : network->get_all_nodes()) {
         QString stationId = QString::fromStdString(node->get_id());
         if (!usedStations.contains(stationId)) {
-            QString displayText = QString("%1 - %2")
-                .arg(stationId)
-                .arg(QString::fromStdString(node->get_name()));
-            
-            auto *item = new QListWidgetItem(displayText);
-            item->setData(Qt::UserRole, stationId);
-            availableStationsList->addItem(item);
+            QString stationName = QString::fromStdString(node->get_name());
+            stationsToAdd.append(qMakePair(stationName, stationId));
         }
+    }
+    
+    // Sort alphabetically by name
+    std::sort(stationsToAdd.begin(), stationsToAdd.end(),
+              [](const QPair<QString, QString>& a, const QPair<QString, QString>& b) {
+                  return a.first.toLower() < b.first.toLower();
+              });
+    
+    // Add sorted stations to available list (show only name)
+    for (const auto& station : stationsToAdd) {
+        auto *item = new QListWidgetItem(station.first); // Display only name
+        item->setData(Qt::UserRole, station.second);      // Store ID in UserRole
+        availableStationsList->addItem(item);
     }
 }
 
@@ -222,6 +233,18 @@ void LineDialog::addStation() {
     }
     
     // Create new item for line list
+    auto *newItem = new QListWidgetItem(item->text());
+    newItem->setData(Qt::UserRole, item->data(Qt::UserRole));
+    stationsList->addItem(newItem);
+    
+    // Update available list
+    updateStationList();
+}
+
+void LineDialog::onAvailableStationDoubleClicked(QListWidgetItem* item) {
+    if (!item) return;
+    
+    // Create new item for line list (same as addStation)
     auto *newItem = new QListWidgetItem(item->text());
     newItem->setData(Qt::UserRole, item->data(Qt::UserRole));
     stationsList->addItem(newItem);

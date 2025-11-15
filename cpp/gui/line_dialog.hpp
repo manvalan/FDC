@@ -16,13 +16,14 @@ namespace fdc {
  * @brief Simple structure to represent a railway line
  */
 struct Line {
+    QString id;           // ID univoco generato automaticamente (LINE_XXX)
     QString name;
     QColor color;
     QStringList stationIds;
     
-    Line() : color(Qt::blue) {}
-    Line(const QString& n, const QColor& c, const QStringList& stations)
-        : name(n), color(c), stationIds(stations) {}
+    Line() : id(""), name(""), color(Qt::blue) {}
+    Line(const QString& lineId, const QString& n, const QColor& c, const QStringList& stations)
+        : id(lineId), name(n), color(c), stationIds(stations) {}
 };
 
 /**
@@ -56,6 +57,7 @@ private slots:
     void removeStation();
     void moveStationUp();
     void moveStationDown();
+    void onAvailableStationDoubleClicked(QListWidgetItem* item);
 
 private:
     void setupUI();

@@ -1,44 +1,92 @@
-# FDC C++ - Railway Network Management System
+# 🚆 FDC Railway Manager - C++ Edition
 
-Riscrittura in C++ del sistema di gestione reti ferroviarie FDC.
+Professional railway network management system with advanced scheduling, conflict detection, and multi-train visualization.
 
-## 🎯 Stato del Progetto
+## 🎯 Project Status
 
-**WORK IN PROGRESS** - Riscrittura da Python a C++ in corso
+**✨ VERSION 1.0.1 - BUG FIXES** - Fully functional with Qt6 GUI
 
-### ✅ Completato
-- [x] Struttura progetto CMake
-- [x] Classi base: `Node`, `Edge`, `Train`
-- [x] Enumerazioni: `NodeType`, `TrackType`, `TrainType`
-- [x] Gestione piattaforme e prenotazioni
-- [x] Calcoli fisici realistici movimento treni
-- [x] Classe `RailwayNetwork` con Boost.Graph
-- [x] Algoritmo Dijkstra per shortest path
-- [x] Pathfinding e analisi rete
-- [x] Sistema Scheduling: `ScheduleStop`, `TrainSchedule`, `ScheduleBuilder`, `ScheduleManager`
-- [x] Conflict detection tra orari
-- [x] Costruzione automatica orari con calcolo tempi
-- [x] **JSON Serialization/Deserialization completo**
-- [x] Export/Import Network e Schedules su file
-- [x] Formato compatibile con versione Python
+### 🐛 Latest Updates (v1.0.1 - 2025-01-20)
+- ✅ **New modern icon**: Purple gradient design with geometric train
+- ✅ **Reverse direction trains**: Fixed "Create from Line" for any direction
+- ✅ **Time window filtering**: Graph now respects ±15 minute window
 
-### 🚧 In Lavorazione
-- [ ] Interfaccia GUI con Qt6
-- [ ] Visualizzazioni grafiche (network map, time-distance diagram)
-- [ ] Database MySQL (opzionale)
+### ✅ Core Features Complete
+- [x] Complete C++ core library with Boost.Graph
+- [x] Realistic train physics (acceleration, cruising, braking)
+- [x] Dijkstra pathfinding algorithm
+- [x] Advanced scheduling system with automatic time calculation
+- [x] JSON serialization/deserialization
+- [x] Network and schedule import/export
 
-## 📋 Requisiti
+### ✅ GUI Application Complete
+- [x] Full Qt6 interface with 7 specialized dialogs
+- [x] Interactive network map with zoom/pan
+- [x] Multi-train time-distance visualization
+- [x] **Bidirectional batch train creation** (any station to any station)
+- [x] **Advanced conflict detection** with track-type rules
+- [x] **Configurable settings system** (4-tab dialog)
+- [x] **Custom macOS-style app icon**
 
-### Obbligatori
-- **C++17** o superiore
+### 🚀 Next Steps
+- [ ] AI-powered scheduling optimization (Phase 7 - Q1 2026)
+- [ ] Advanced analytics dashboard (Phase 8 - Q2 2026)
+- [ ] Real-time simulation (Phase 9 - Q3 2026)
+- [ ] Multi-user collaboration (Phase 10 - Q4 2026)
+
+## 🎨 Key Features
+
+### � Network Management
+- Visual network editor with interactive map
+- Stations with GPS coordinates, capacity, platform management
+- Connections with track type (single/double), distance, max speed
+- Import/export network data in JSON format
+
+### 🚄 Train Scheduling
+- **Bidirectional batch creation**: Create multiple trains from any station to any station
+- Automatic time calculation based on realistic physics
+- **Multi-train visualization** with color-coded time-distance charts
+- **Smart conflict detection**:
+  - Single track: 1 train max per section (opposite = conflict)
+  - Same direction: configurable minimum separation (default 5km)
+  - Double track: separate tracks, configurable separation
+  - Station conflicts: time tolerance (default ±2 minutes)
+
+### ⚙️ Configuration System
+- **4-tab settings dialog**:
+  1. **Traffic Visualization**: time window (±20 min), common stations filter
+  2. **Conflict Detection**: enable/disable, track separations, tolerances
+  3. **Batch Creation**: default train count, interval, naming
+  4. **Schedule Calculation**: dwell time, auto-calculate
+- Settings persist via QSettings (macOS: `~/Library/Preferences`)
+
+### 📊 Visualization
+- **Network Map Widget**: Zoom, pan, node/edge highlighting
+- **Schedule Graph Widget**: 
+  - Time-distance diagrams with multiple trains
+  - Red conflict markers with warnings
+  - Focused traffic view (±20 min window)
+  - Color-coded train identification
+
+### 🎯 User Experience
+- Professional Qt6 interface
+- macOS-style custom icon
+- Keyboard shortcuts (⌘, for Preferences)
+- Intuitive dialogs with validation
+- Real-time conflict feedback
+
+## 📋 Requirements
+
+### Required
+- **C++17** or higher
 - **CMake** 3.15+
 - **Boost** 1.70+ (Boost.Graph)
-- **nlohmann/json** (scaricato automaticamente da CMake)
+- **Qt6** 6.2+ (Core, Widgets, GUI)
+- **nlohmann/json** (auto-downloaded by CMake)
 
-### Opzionali
-- **Qt6** o **Qt5** 5.15+ (per GUI)
-- **MySQL Connector/C++** (per database)
-- **Google Test** (per unit tests)
+### Optional
+- **Google Test** (for unit tests)
+- **Doxygen** (for API documentation)
 
 ## 🚀 Compilazione
 
@@ -97,7 +145,55 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=[vcpkg root]/scripts/buildsystems/vcpkg.cmake
 cmake --build . --config Release
 ```
 
-## 📁 Struttura
+## � Quick Start
+
+### Running the GUI Application
+
+```bash
+cd build
+./bin/fdc_gui  # or open "FDC Railway Manager.app" on macOS
+```
+
+### Basic Workflow
+
+1. **Create Network**:
+   - Add stations (View → Stazioni)
+   - Create connections (View → Connessioni)
+   - View network map (View → Mappa Rete)
+
+2. **Define Trains**:
+   - Add train types (View → Treni)
+   - Set speed, capacity, acceleration
+
+3. **Create Lines**:
+   - Define routes (View → Linee)
+   - Drag & drop stations to order
+
+4. **Schedule Trains**:
+   - Create single schedule (View → Orari)
+   - Or batch create multiple trains (Orari → Crea Batch)
+   - **Select any start/end station for bidirectional routes**
+   - Automatic time calculation with physics
+
+5. **Visualize Traffic**:
+   - Click "Visualizza Treni" button
+   - See all trains with time-distance chart
+   - **Red triangles = conflicts detected**
+
+6. **Configure Settings**:
+   - Menu → Impostazioni → Preferenze (⌘,)
+   - Adjust conflict rules, time windows, defaults
+
+### Example Files
+
+Load the demo network to get started:
+
+```bash
+# Load Contea railway network
+File → Apri Rete → examples/ferrovie_contea.json
+```
+
+## 📁 Structure
 
 ```
 cpp/
@@ -261,38 +357,75 @@ int main() {
 }
 ```
 
-## 🔄 Differenze con Versione Python
+## � Documentation
 
-| Aspetto | Python | C++ |
-|---------|--------|-----|
+For comprehensive project documentation, see:
+
+- **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - Complete feature list, roadmap, and AI integration plans
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+- **[SUMMARY.md](SUMMARY.md)** - Technical architecture and design decisions
+
+### Future Development
+
+See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed roadmap including:
+- 🤖 **Phase 7**: AI-powered scheduling with LLM integration
+- 📈 **Phase 8**: Advanced analytics and reporting dashboard
+- 🌐 **Phase 9**: Real-time simulation with digital twin
+- 👥 **Phase 10**: Multi-user collaboration with cloud sync
+- 🎨 **Phase 11**: Advanced UI/UX with mobile companion apps
+- 🧪 **Phase 12**: Comprehensive testing and quality assurance
+
+## 🔄 Differences with Python Version
+
+| Aspect | Python | C++ |
+|--------|--------|-----|
 | **Memory** | Garbage collected | RAII + Smart pointers |
 | **Types** | Dynamic | Static (compile-time) |
-| **Speed** | Interpretato | Compilato (10-100x faster) |
+| **Speed** | Interpreted | Compiled (10-100x faster) |
 | **Graphs** | networkx | Boost.Graph |
-| **GUI** | Tkinter | Qt6 |
+| **GUI** | Tkinter | Qt6 (professional) |
 | **JSON** | built-in | nlohmann/json |
-| **DB** | mysql-connector-python | MySQL Connector/C++ |
+| **Status** | Prototype | Production-ready |
 
-## 📚 Prossimi Passi
+## 🤝 Contributing
 
-1. **RailwayNetwork** con Boost.Graph
-2. **Dijkstra** e algoritmi pathfinding
-3. **Schedule** e gestione orari
-4. **JSON serialization** completa
-5. **GUI Qt** con visualizzazioni
-6. **Database layer** (opzionale)
-7. **Unit tests** completi
-8. **Performance benchmarks**
+The project is **open source** and welcomes contributions!
 
-## 🤝 Contributi
+**How to contribute:**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Progetto in fase di riscrittura attiva. Il codice Python originale si trova nella directory `src/` principale.
+**Areas needing help:**
+- 💻 C++ development (algorithms, optimization)
+- 🎨 UI/UX design and improvements
+- 📝 Documentation and tutorials
+- 🧪 Testing and quality assurance
+- 🤖 AI/ML integration
+- 🌍 Internationalization (i18n)
 
-## 📄 Licenza
+## 📄 License
 
-Stesso del progetto Python originale.
+**MIT License** - Free for commercial and non-commercial use.
 
-## ✨ Credits
+See [LICENSE](../LICENSE) file for details.
 
-Riscrittura C++ del progetto FDC Railway Management System.
-Versione Python originale: v0.2.0
+## 👨‍💻 Author
+
+**Michele Bigi** & Contributors
+
+## 🙏 Acknowledgments
+
+- Original Python version foundation
+- Boost.Graph library for network algorithms
+- Qt6 for professional cross-platform GUI
+- nlohmann/json for modern C++ JSON handling
+- Railway engineering community for domain knowledge
+
+---
+
+**Version:** 1.0.0 | **Status:** ✅ Production Ready | **Last Updated:** November 15, 2025
+
+🚆 **All aboard for the future of railway management!** 🚆

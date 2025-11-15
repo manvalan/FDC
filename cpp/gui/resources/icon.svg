@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Modern gradient background - Mac Big Sur style -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Glossy overlay for depth -->
+    <linearGradient id="glossGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.3" />
+      <stop offset="50%" style="stop-color:#FFFFFF;stop-opacity:0" />
+      <stop offset="100%" style="stop-color:#000000;stop-opacity:0.1" />
+    </linearGradient>
+    
+    <!-- Train gradient - sleek red/pink -->
+    <linearGradient id="trainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f5576c;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Track gradient -->
+    <linearGradient id="trackGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#E0E0E0;stop-opacity:0.9" />
+    </linearGradient>
+    
+    <!-- Soft shadow -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="3" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.25"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    
+    <!-- Glow effect for train -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background with Mac rounded corners -->
+  <rect width="1024" height="1024" rx="226" ry="226" fill="url(#bgGradient)"/>
+  
+  <!-- Glossy overlay for Mac-style depth -->
+  <rect width="1024" height="1024" rx="226" ry="226" fill="url(#glossGradient)"/>
+  
+  <!-- Minimalist perspective track - single vanishing point -->
+  <g opacity="0.9">
+    <!-- Simplified track with perspective -->
+    <!-- Left rail -->
+    <path d="M 280 750 L 320 450 L 340 450 L 300 750 Z" fill="url(#trackGradient)"/>
+    <!-- Right rail -->
+    <path d="M 744 750 L 704 450 L 684 450 L 724 750 Z" fill="url(#trackGradient)"/>
+    
+    <!-- Minimalist sleepers (only 5 for clean look) -->
+    <rect x="260" y="680" width="504" height="8" fill="#FFFFFF" opacity="0.6" rx="2"/>
+    <rect x="270" y="620" width="484" height="8" fill="#FFFFFF" opacity="0.6" rx="2"/>
+    <rect x="280" y="560" width="464" height="8" fill="#FFFFFF" opacity="0.6" rx="2"/>
+    <rect x="290" y="500" width="444" height="8" fill="#FFFFFF" opacity="0.6" rx="2"/>
+  </g>
+  
+  <!-- Iconic minimalist train - abstract/geometric -->
+  <g filter="url(#softShadow)">
+    <!-- Train body - simplified geometric shape -->
+    <g filter="url(#glow)">
+      <!-- Main body - rounded rectangle -->
+      <rect x="380" y="340" width="264" height="140" rx="20" ry="20" fill="url(#trainGradient)"/>
+      
+      <!-- Aerodynamic front - triangle -->
+      <path d="M 644 380 L 740 410 L 644 440 Z" fill="url(#trainGradient)"/>
+      
+      <!-- Cockpit window - single large window -->
+      <ellipse cx="680" cy="410" rx="35" ry="40" fill="#2C3E50" opacity="0.7"/>
+      
+      <!-- Side windows - minimalist rectangles -->
+      <rect x="410" y="370" width="50" height="60" fill="#34495e" opacity="0.7" rx="6"/>
+      <rect x="480" y="370" width="50" height="60" fill="#34495e" opacity="0.7" rx="6"/>
+      <rect x="550" y="370" width="50" height="60" fill="#34495e" opacity="0.7" rx="6"/>
+      
+      <!-- Light strip - characteristic detail -->
+      <rect x="390" y="450" width="250" height="6" fill="#FFD700" opacity="0.9" rx="3"/>
+      
+      <!-- Speed lines - minimal -->
+      <line x1="280" y1="390" x2="350" y2="390" stroke="#FFFFFF" stroke-width="6" opacity="0.5" stroke-linecap="round"/>
+      <line x1="300" y1="430" x2="360" y2="430" stroke="#FFFFFF" stroke-width="6" opacity="0.5" stroke-linecap="round"/>
+    </g>
+  </g>
+  
+  <!-- Minimalist location pin icon (railway metaphor) -->
+  <g opacity="0.85" filter="url(#softShadow)">
+    <circle cx="200" cy="320" r="45" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="200" cy="320" r="30" fill="#f5576c"/>
+    <circle cx="200" cy="320" r="15" fill="#FFFFFF"/>
+  </g>
+  
+  <!-- Clean typography - Mac style -->
+  <g>
+    <!-- FDC - bold and prominent -->
+    <text x="512" y="820" 
+          font-family="SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif" 
+          font-size="110" 
+          font-weight="700" 
+          letter-spacing="-2"
+          text-anchor="middle" 
+          fill="#FFFFFF" 
+          opacity="0.98">FDC</text>
+    
+    <!-- Subtitle - light and elegant -->
+    <text x="512" y="880" 
+          font-family="SF Pro Text, -apple-system, BlinkMacSystemFont, sans-serif" 
+          font-size="28" 
+          font-weight="300" 
+          letter-spacing="3"
+          text-anchor="middle" 
+          fill="#FFFFFF" 
+          opacity="0.85">RAILWAY MANAGER</text>
+  </g>
+  
+  <!-- Subtle accent line for sophistication -->
+  <line x1="362" y1="900" x2="662" y2="900" stroke="#FFFFFF" stroke-width="2" opacity="0.4" stroke-linecap="round"/>
+</svg>
